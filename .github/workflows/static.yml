@@ -120,12 +120,16 @@ jobs:
           echo "a2bd77cf8947bbb281bdb57e6c28597ca07fdcb26d6569b6a3a0c73cb34a1fd5  /tmp/player-panel-layout.patch.gz" | sha256sum --check
           gzip -d /tmp/player-panel-layout.patch.gz
           patch --batch --forward -p1 < /tmp/player-panel-layout.patch
+          cat .global-presence-patch/*.b64 | base64 --decode > /tmp/global-presence.patch.gz
+          echo "8f4647fe360f76103b902d107c95267280507047fd355f27e58dd90fc721c001  /tmp/global-presence.patch.gz" | sha256sum --check
+          gzip -d /tmp/global-presence.patch.gz
+          patch --batch --forward -p1 < /tmp/global-presence.patch
           for file in apex-gp/src/*.js apex-gp/src/*.mjs apex-gp/tests/*.mjs; do node --check "$file"; done
           node apex-gp/tests/race-math.test.mjs
           rm -f Apex-GP.zip
           zip -qr Apex-GP.zip apex-gp
           unzip -tq Apex-GP.zip
-          rm -rf /tmp/apex-gp-overrides /tmp/main-update.patch .overrides.bundle.b64 .main.patch.gz.b64 .overlay-files .track-camera-patch /tmp/track-camera.patch .driving-update-patch /tmp/driving-update.patch.gz /tmp/driving-update.patch .launcher-braking-patch /tmp/launcher-braking.patch.gz /tmp/launcher-braking.patch .online-players-patch /tmp/online-players.patch.gz /tmp/online-players.patch .player-panel-layout-patch /tmp/player-panel-layout.patch.gz /tmp/player-panel-layout.patch
+          rm -rf /tmp/apex-gp-overrides /tmp/main-update.patch .overrides.bundle.b64 .main.patch.gz.b64 .overlay-files .track-camera-patch /tmp/track-camera.patch .driving-update-patch /tmp/driving-update.patch.gz /tmp/driving-update.patch .launcher-braking-patch /tmp/launcher-braking.patch.gz /tmp/launcher-braking.patch .online-players-patch /tmp/online-players.patch.gz /tmp/online-players.patch .player-panel-layout-patch /tmp/player-panel-layout.patch.gz /tmp/player-panel-layout.patch .global-presence-patch /tmp/global-presence.patch.gz /tmp/global-presence.patch
           rm -rf .refined-parts .monza-parts .apex-gp-parts /tmp/Apex-GP-Refined.zip
       - name: Setup Pages
         uses: actions/configure-pages@v5
