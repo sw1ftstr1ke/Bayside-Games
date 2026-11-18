@@ -26,7 +26,7 @@ jobs:
         uses: actions/checkout@v4
       - name: Rebuild and extract the updated Apex GP package
         run: |
-          cat .apex-gp-parts/*.b64 | base64 -d > /tmp/Apex-GP.zip
+          cat .apex-gp-parts/*.b64 > /tmp/Apex-GP.zip
           unzip -oq /tmp/Apex-GP.zip -d .
           rm -rf .apex-gp-parts /tmp/Apex-GP.zip
       - name: Setup Pages
