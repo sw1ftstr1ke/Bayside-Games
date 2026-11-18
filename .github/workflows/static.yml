@@ -1,4 +1,4 @@
-# Deploy the Slipstream-V2 repository and the Apex GP simulator to GitHub Pages
+# Deploy the updated Monza Apex GP simulator to GitHub Pages
 name: Deploy static content to Pages
 
 on:
@@ -24,11 +24,12 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-      - name: Rebuild and extract the updated Apex GP package
+      - name: Reassemble and verify the Monza simulator
         run: |
-          cat .apex-gp-parts/*.b64 > /tmp/Apex-GP.zip
-          unzip -oq /tmp/Apex-GP.zip -d .
-          rm -rf .apex-gp-parts /tmp/Apex-GP.zip
+          cat .monza-parts/*.bin > /tmp/Apex-GP-Monza.zip
+          unzip -tq /tmp/Apex-GP-Monza.zip
+          unzip -oq /tmp/Apex-GP-Monza.zip -d .
+          rm -rf .monza-parts /tmp/Apex-GP-Monza.zip
       - name: Setup Pages
         uses: actions/configure-pages@v5
       - name: Upload artifact
