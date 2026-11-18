@@ -35,6 +35,25 @@ jobs:
           base64 --decode .overrides.bundle.b64 | tar -xz -C /tmp/apex-gp-overrides
           cp -a /tmp/apex-gp-overrides/apex-gp/. apex-gp/
           patch --batch --forward -p1 < /tmp/apex-gp-overrides/overrides.patch
+          python3 - <<'PY'
+          from pathlib import Path
+          path = Path("apex-gp/src/main.js")
+          source = path.read_text()
+          old_steer = """  // The camera follows the car facing +Z: in that view, +world-X is screen-left.
+          // Keep the driver's conventional input (A/left = -1, D/right = +1), then
+          // invert it once here so the visible nose and front wheels turn the expected way.
+          const steeringAngle = -carState.steer * maxSteerAngle;"""
+          new_steer = """  // The nose points along +Z. From the chase view, +world-X is screen-right,
+          // so positive steering input (D/right) must produce positive yaw.
+          const steeringAngle = carState.steer * maxSteerAngle;"""
+          old_camera = """  // Camera-right is opposite world +X while looking forward along +Z.
+          const right = new THREE.Vector3(-forward.z, 0, forward.x);"""
+          new_camera = """  // Camera-right follows +world-X while looking forward along +Z.
+          const right = new THREE.Vector3(forward.z, 0, -forward.x);"""
+          if old_steer not in source or old_camera not in source:
+              raise SystemExit("Expected steering/camera convention not found; refusing to patch")
+          path.write_text(source.replace(old_steer, new_steer).replace(old_camera, new_camera))
+          PY
           rm -rf /tmp/apex-gp-overrides .overrides.bundle.b64
           rm -rf .refined-parts .monza-parts /tmp/Apex-GP-Refined.zip
       - name: Setup Pages
