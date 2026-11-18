@@ -31,6 +31,11 @@ jobs:
           unzip -tq /tmp/Apex-GP-Refined.zip
           rm -rf apex-gp
           unzip -oq /tmp/Apex-GP-Refined.zip -d .
+          mkdir -p /tmp/apex-gp-overrides
+          base64 --decode .overrides.bundle.b64 | tar -xz -C /tmp/apex-gp-overrides
+          cp -a /tmp/apex-gp-overrides/apex-gp/. apex-gp/
+          patch --batch --forward -p1 < /tmp/apex-gp-overrides/overrides.patch
+          rm -rf /tmp/apex-gp-overrides .overrides.bundle.b64
           rm -rf .refined-parts .monza-parts /tmp/Apex-GP-Refined.zip
       - name: Setup Pages
         uses: actions/configure-pages@v5
