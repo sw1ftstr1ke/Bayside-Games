@@ -41,27 +41,26 @@ jobs:
           from pathlib import Path
           path = Path("apex-gp/src/main.js")
           source = path.read_text()
-          # Add the tested math helpers even if a neighbouring source hunk had different context.
-          if "import { steeringAngleFromInput" not in source:
+          helper_import = "import { steeringAngleFromInput, cameraRightFromForward, shouldJudgeExcursion, evaluateExcursion } from './race-math.mjs';"
+          if helper_import not in source:
               anchor = "import { TEAMS, createRacerCar, gridSlotPose, placeRacerOnTrack } from './opponents.js';"
               if anchor not in source:
                   raise SystemExit("Could not find the vehicle import anchor")
-              source = source.replace(anchor, anchor + "\\nimport { steeringAngleFromInput, cameraRightFromForward, shouldJudgeExcursion, evaluateExcursion } from './race-math.mjs';")
-          # Replace the whole steering block, independent of the older comment/sign variant.
-          speed_line = "  const speedRatio = clamp(speed / 105, 0, 1);"
-          start = source.find(speed_line)
-          if start < 0:
-              start = source.find("  const maxSteerAngle = lerp(.54, .19, speedRatio);")
-          if start < 0:
+              source = source.replace(anchor, anchor + chr(10) + helper_import)
+          # Replace the entire old steering block regardless of its old +/- sign.
+          speed_line = source.find("const speedRatio = clamp(speed /")
+          if speed_line < 0:
+              speed_line = source.find("const maxSteerAngle = lerp(")
+          if speed_line < 0:
               raise SystemExit("Could not locate the steering block")
-          comment_start = source.rfind("  // Keyboard polarity", 0, start)
-          if comment_start < 0:
-              comment_start = source.rfind("  // The camera follows", 0, start)
-          if comment_start >= 0:
-              start = comment_start
-          end = source.find("  const wheelbase = 3.42;", start)
-          if end < 0:
-              raise SystemExit("Could not locate the end of the steering block")
+          start = source.rfind("  // Keyboard polarity", 0, speed_line)
+          if start < 0:
+              start = source.rfind("  // The camera follows", 0, speed_line)
+          if start < 0:
+              start = source.rfind("  const speedRatio", 0, speed_line)
+          end = source.find("  const wheelbase = 3.42;", speed_line)
+          if start < 0 or end < 0:
+              raise SystemExit("Could not bound the steering block")
           steering = """  // Three.js looks forward along +Z; screen-right is world -X.
           // A/left therefore creates positive world yaw and D/right negative yaw.
           const speedRatio = clamp(speed / 108, 0, 1);
@@ -69,17 +68,23 @@ jobs:
           const steeringAngle = steeringAngleFromInput(carState.steer, maxSteerAngle);
           """
           source = source[:start] + steering + source[end:]
-          # Camera lateral offset must use the same screen-right vector.
-          import re
-          source, camera_count = re.subn(
-              r"  const right = new THREE\\.Vector3\\([^;]+;",
-              "  const rightXZ = cameraRightFromForward(forward.x, forward.z);\\n  const right = new THREE.Vector3(rightXZ.x, 0, rightXZ.z);",
-              source,
-              count=1
-          )
-          if camera_count != 1:
-              raise SystemExit("Could not normalize the TV camera side vector")
-          # Match the minimap car glyph to the +Z-forward map convention.
+          # Align every TV/chase camera lateral offset with the same view-space basis.
+          lines = source.splitlines()
+          camera_fixed = False
+          for i, line in enumerate(lines):
+              if line.strip().startswith("const right = new THREE.Vector3("):
+                  lines[i:i + 1] = [
+                      "  const rightXZ = cameraRightFromForward(forward.x, forward.z);",
+                      "  const right = new THREE.Vector3(rightXZ.x, 0, rightXZ.z);"
+                  ]
+                  camera_fixed = True
+                  break
+              if "cameraRightFromForward(forward.x, forward.z)" in line:
+                  camera_fixed = True
+                  break
+          source = "\n".join(lines) + "\n"
+          if not camera_fixed:
+              raise SystemExit("Could not normalize the camera side vector")
           source = source.replace(
               "ctx.beginPath(); ctx.moveTo(0, -6); ctx.lineTo(4, 5); ctx.lineTo(0, 3); ctx.lineTo(-4, 5); ctx.closePath(); ctx.fill(); ctx.restore();",
               "ctx.beginPath(); ctx.moveTo(0, 6); ctx.lineTo(4, -5); ctx.lineTo(0, -2); ctx.lineTo(-4, -5); ctx.closePath(); ctx.fill(); ctx.restore();"
