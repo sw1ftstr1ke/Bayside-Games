@@ -1,5 +1,6 @@
 # Deploy the tested, improved Apex GP simulator to GitHub Pages
 name: Deploy static content to Pages
+run-name: Publish Apex GP simulator build
 
 on:
   push:
