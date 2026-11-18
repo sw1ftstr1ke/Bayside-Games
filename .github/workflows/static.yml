@@ -36,7 +36,61 @@ jobs:
           cp -a /tmp/apex-gp-overrides/apex-gp/. apex-gp/
           patch --batch --forward -p1 < /tmp/apex-gp-overrides/overrides.patch
           base64 --decode .main.patch.gz.b64 | gzip -d > /tmp/main-update.patch
-          patch --batch --forward -p1 < /tmp/main-update.patch
+          patch --batch --forward -p1 < /tmp/main-update.patch || true
+          python3 - <<'PY'
+          from pathlib import Path
+          path = Path("apex-gp/src/main.js")
+          source = path.read_text()
+          # Add the tested math helpers even if a neighbouring source hunk had different context.
+          if "import { steeringAngleFromInput" not in source:
+              anchor = "import { TEAMS, createRacerCar, gridSlotPose, placeRacerOnTrack } from './opponents.js';"
+              if anchor not in source:
+                  raise SystemExit("Could not find the vehicle import anchor")
+              source = source.replace(anchor, anchor + "\\nimport { steeringAngleFromInput, cameraRightFromForward, shouldJudgeExcursion, evaluateExcursion } from './race-math.mjs';")
+          # Replace the whole steering block, independent of the older comment/sign variant.
+          speed_line = "  const speedRatio = clamp(speed / 105, 0, 1);"
+          start = source.find(speed_line)
+          if start < 0:
+              start = source.find("  const maxSteerAngle = lerp(.54, .19, speedRatio);")
+          if start < 0:
+              raise SystemExit("Could not locate the steering block")
+          comment_start = source.rfind("  // Keyboard polarity", 0, start)
+          if comment_start < 0:
+              comment_start = source.rfind("  // The camera follows", 0, start)
+          if comment_start >= 0:
+              start = comment_start
+          end = source.find("  const wheelbase = 3.42;", start)
+          if end < 0:
+              raise SystemExit("Could not locate the end of the steering block")
+          steering = """  // Three.js looks forward along +Z; screen-right is world -X.
+          // A/left therefore creates positive world yaw and D/right negative yaw.
+          const speedRatio = clamp(speed / 108, 0, 1);
+          const maxSteerAngle = lerp(.62, .25, speedRatio);
+          const steeringAngle = steeringAngleFromInput(carState.steer, maxSteerAngle);
+          """
+          source = source[:start] + steering + source[end:]
+          # Camera lateral offset must use the same screen-right vector.
+          import re
+          source, camera_count = re.subn(
+              r"  const right = new THREE\\.Vector3\\([^;]+;",
+              "  const rightXZ = cameraRightFromForward(forward.x, forward.z);\\n  const right = new THREE.Vector3(rightXZ.x, 0, rightXZ.z);",
+              source,
+              count=1
+          )
+          if camera_count != 1:
+              raise SystemExit("Could not normalize the TV camera side vector")
+          # Match the minimap car glyph to the +Z-forward map convention.
+          source = source.replace(
+              "ctx.beginPath(); ctx.moveTo(0, -6); ctx.lineTo(4, 5); ctx.lineTo(0, 3); ctx.lineTo(-4, 5); ctx.closePath(); ctx.fill(); ctx.restore();",
+              "ctx.beginPath(); ctx.moveTo(0, 6); ctx.lineTo(4, -5); ctx.lineTo(0, -2); ctx.lineTo(-4, -5); ctx.closePath(); ctx.fill(); ctx.restore();"
+          )
+          if "steeringAngleFromInput(carState.steer, maxSteerAngle)" not in source:
+              raise SystemExit("Steering sign verification failed")
+          if "cameraRightFromForward(forward.x, forward.z)" not in source:
+              raise SystemExit("Camera direction verification failed")
+          path.write_text(source)
+          PY
+          rm -f apex-gp/src/main.js.rej
           mkdir -p apex-gp/src apex-gp/tests
           cp .overlay-files/race-math.mjs apex-gp/src/race-math.mjs
           cp .overlay-files/race-math.test.mjs apex-gp/tests/race-math.test.mjs
