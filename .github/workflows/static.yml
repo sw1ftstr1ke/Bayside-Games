@@ -36,7 +36,7 @@ jobs:
           cp -a /tmp/apex-gp-overrides/apex-gp/. apex-gp/
           patch --batch --forward -p1 < /tmp/apex-gp-overrides/overrides.patch
           base64 --decode .main.patch.gz.b64 | gzip -d > /tmp/main-update.patch
-          patch --batch --forward -p1 < /tmp/main-update.patch || true
+          patch --no-backup-if-mismatch --batch --forward -p1 < /tmp/main-update.patch || true
           python3 - <<'PY'
           from pathlib import Path
           path = Path("apex-gp/src/main.js")
@@ -95,7 +95,7 @@ jobs:
               raise SystemExit("Camera direction verification failed")
           path.write_text(source)
           PY
-          rm -f apex-gp/src/main.js.rej
+          rm -f apex-gp/src/main.js.rej apex-gp/src/main.js.orig
           mkdir -p apex-gp/src apex-gp/tests
           cp .overlay-files/race-math.mjs apex-gp/src/race-math.mjs
           cp .overlay-files/race-math.test.mjs apex-gp/tests/race-math.test.mjs
@@ -105,7 +105,7 @@ jobs:
           zip -qr Apex-GP.zip apex-gp
           unzip -tq Apex-GP.zip
           rm -rf /tmp/apex-gp-overrides /tmp/main-update.patch .overrides.bundle.b64 .main.patch.gz.b64 .overlay-files
-          rm -rf .refined-parts .monza-parts /tmp/Apex-GP-Refined.zip
+          rm -rf .refined-parts .monza-parts .apex-gp-parts /tmp/Apex-GP-Refined.zip
       - name: Setup Pages
         uses: actions/configure-pages@v5
       - name: Upload artifact
