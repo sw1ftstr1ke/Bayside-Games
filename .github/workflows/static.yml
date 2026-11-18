@@ -24,8 +24,11 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-      - name: Expand Apex GP into its own site folder
-        run: unzip -oq Apex-GP.zip -d .
+      - name: Rebuild and extract the updated Apex GP package
+        run: |
+          cat .apex-gp-parts/*.b64 | base64 -d > /tmp/Apex-GP.zip
+          unzip -oq /tmp/Apex-GP.zip -d .
+          rm -rf .apex-gp-parts /tmp/Apex-GP.zip
       - name: Setup Pages
         uses: actions/configure-pages@v5
       - name: Upload artifact
