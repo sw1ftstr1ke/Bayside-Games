@@ -103,12 +103,16 @@ jobs:
           echo "3b7989ce5a97c0b3c141133c0aaece02d1d1c312ce36e92d98b2a0e75b509f0e  /tmp/track-camera.patch.gz" | sha256sum --check
           gzip -d /tmp/track-camera.patch.gz
           patch --batch --forward -p1 < /tmp/track-camera.patch
+          cat .driving-update-patch/*.b64 | base64 --decode > /tmp/driving-update.patch.gz
+          echo "20c05663873e9d30c3f5937afffc34be27256e222763803349b829e0b795e01c  /tmp/driving-update.patch.gz" | sha256sum --check
+          gzip -d /tmp/driving-update.patch.gz
+          patch --batch --forward -p1 < /tmp/driving-update.patch
           for file in apex-gp/src/*.js apex-gp/src/*.mjs apex-gp/tests/*.mjs; do node --check "$file"; done
           node apex-gp/tests/race-math.test.mjs
           rm -f Apex-GP.zip
           zip -qr Apex-GP.zip apex-gp
           unzip -tq Apex-GP.zip
-          rm -rf /tmp/apex-gp-overrides /tmp/main-update.patch .overrides.bundle.b64 .main.patch.gz.b64 .overlay-files .track-camera-patch /tmp/track-camera.patch
+          rm -rf /tmp/apex-gp-overrides /tmp/main-update.patch .overrides.bundle.b64 .main.patch.gz.b64 .overlay-files .track-camera-patch /tmp/track-camera.patch .driving-update-patch /tmp/driving-update.patch.gz /tmp/driving-update.patch
           rm -rf .refined-parts .monza-parts .apex-gp-parts /tmp/Apex-GP-Refined.zip
       - name: Setup Pages
         uses: actions/configure-pages@v5
