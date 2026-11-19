@@ -225,7 +225,7 @@ jobs:
           gzip -d /tmp/ers-tyres-pit.patch.gz
           patch --batch --forward -p1 < /tmp/ers-tyres-pit.patch
           cat .sunny-loader-patch/*.b64 | base64 --decode > /tmp/sunny-loader.patch.gz
-          echo "db57a388fc964f38d9b4b68d22a3a58cb383834ef86b579db210f82793ccce30  /tmp/sunny-loader.patch.gz" | sha256sum --check
+          echo "343cc968c6cb8f4d12183d7e1cd45c310514430e67a0a5f794b4299d1529a1b5  /tmp/sunny-loader.patch.gz" | sha256sum --check
           gzip -d /tmp/sunny-loader.patch.gz
           patch --batch --forward -p1 < /tmp/sunny-loader.patch
           for file in apex-gp/src/*.js apex-gp/src/*.mjs apex-gp/tests/*.mjs; do node --check "$file"; done
