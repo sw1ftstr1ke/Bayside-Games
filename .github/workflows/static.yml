@@ -280,8 +280,14 @@ jobs:
           echo "e8361f7d72cb58115b82ee7c78686adc1969038a6c83c51815456ec011757da1  /tmp/bayside-autumn-theme.patch.gz" | sha256sum --check
           gzip -d /tmp/bayside-autumn-theme.patch.gz
           patch --batch --forward -p1 < /tmp/bayside-autumn-theme.patch
+          cat .room-owner-grid-patch/*.b64 | tr -d '\r\n' | base64 --decode > /tmp/room-owner-grid.patch.gz
+          echo "814cf573620466606431a74ffa50b6d32a00b0d8ba9fbb434cd56015bf55277c  /tmp/room-owner-grid.patch.gz" | sha256sum --check
+          gzip -d /tmp/room-owner-grid.patch.gz
+          patch --batch --forward -p1 < /tmp/room-owner-grid.patch
           for file in apex-gp/src/*.js apex-gp/src/*.mjs apex-gp/tests/*.mjs; do node --check "$file"; done
           node apex-gp/tests/race-math.test.mjs
+          node --experimental-default-type=module apex-gp/tests/room-network.test.mjs
+          rm -rf .room-owner-grid-patch /tmp/room-owner-grid.patch.gz /tmp/room-owner-grid.patch
           rm -rf .bayside-autumn-theme-patch /tmp/bayside-autumn-theme.patch.gz /tmp/bayside-autumn-theme.patch
           rm -rf .bayside-wave-fill-fix /tmp/bayside-wave-fill-fix.patch.gz /tmp/bayside-wave-fill-fix.patch
           rm -f Apex-GP.zip
