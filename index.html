@@ -25,11 +25,28 @@
       <a href="./apex-gp/">GAMES</a>
       <a href="./about/">ABOUT</a>
       <a href="./" aria-current="page">HOME</a>
+      <button class="site-players-toggle" id="site-players-toggle" type="button" aria-expanded="true" aria-controls="site-players-panel"><span>♟</span><small>PLAYERS <b id="site-player-nav-count">0</b></small></button>
     </nav>
   </header>
+  
+  <aside class="site-players-panel collapsed" id="site-players-panel" aria-label="Online players" aria-live="polite">
+    <div class="site-players-heading">
+      <div><span class="site-players-kicker">BAYSIDE GAMES COMMUNITY</span><h2>PLAYERS</h2></div>
+      <button id="site-players-close" type="button" aria-label="Hide online players">×</button>
+    </div>
+    <div class="site-player-profile">
+      <label for="site-player-name">YOUR DISPLAY NAME</label>
+      <div class="site-player-edit"><input id="site-player-name" type="text" maxlength="18" value="RACER" autocomplete="nickname" placeholder="CHOOSE A NICKNAME" /><button id="site-player-name-save" type="button">SET</button></div>
+      <small>Choose a nickname. Avoid personal details.</small>
+    </div>
+    <div class="site-player-room-strip"><i></i><span>WEBSITE ONLINE</span><b id="site-player-count">0 ONLINE</b></div>
+    <div class="site-player-list" id="site-player-list"><div class="site-player-empty">Connecting to the global player list…</div></div>
+    <div class="site-player-footer"><span class="site-player-footer-indicator"></span><span>GLOBAL PRESENCE</span><b id="site-player-footer-status">CONNECTING</b><button id="site-player-owner-login" type="button">OWNER LOGIN</button></div>
+  </aside>
+  <div class="site-page-shell">
   <main>
     <section class="hero">
-      <img class="hero-art" src="./assets/hero-racecar.svg" alt="A formula-style race car speeding around a circuit at sunset" />
+      <img class="hero-art" src="./assets/hero-racecar.webp" alt="A formula-style race car speeding around a circuit at sunset" />
       <div class="hero-wave-layer" aria-hidden="true"><svg viewBox="0 0 1600 340" preserveAspectRatio="none"><path d="M0 180 C100 110 200 110 300 180 S500 250 600 180 S800 110 900 180 S1100 250 1200 180 S1400 110 1500 180 S1700 250 1800 180"/><path d="M0 220 C120 150 240 150 360 220 S600 290 720 220 S960 150 1080 220 S1320 290 1440 220 S1680 150 1800 220"/><path d="M0 260 C140 205 280 205 420 260 S700 315 840 260 S1120 205 1260 260 S1540 315 1680 260"/></svg></div>
       <div class="hero-copy">
         <div class="eyebrow">YOUR NEXT CHALLENGE STARTS HERE</div>
@@ -48,5 +65,7 @@
     </section>
   </main>
   <footer class="site-footer"><span>© BAYSIDE GAMES</span><span>BUILT FOR THE LOVE OF GAMES</span></footer>
+  </div>
+  <script type="module" src="./assets/site-presence.js"></script>
 </body>
 </html>
