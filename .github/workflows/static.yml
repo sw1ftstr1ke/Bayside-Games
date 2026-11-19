@@ -260,6 +260,10 @@ jobs:
           echo "725e2af49adb7d229afd9bd833adb3a62660394761d03f9ee0d950a5eec653f8  /tmp/race-setup-sidebar.patch.gz" | sha256sum --check
           gzip -d /tmp/race-setup-sidebar.patch.gz
           patch --batch --forward -p1 < /tmp/race-setup-sidebar.patch
+          cat .bayside-brand-layout-patch/*.b64 | tr -d '\r\n' | base64 --decode > /tmp/bayside-brand-layout.patch.gz
+          echo "628fab2653c0a7a739c95988823fc33a535578fb395bda581ddbf4c28f80a45f  /tmp/bayside-brand-layout.patch.gz" | sha256sum --check
+          gzip -d /tmp/bayside-brand-layout.patch.gz
+          patch --batch --forward -p1 < /tmp/bayside-brand-layout.patch
           for file in apex-gp/src/*.js apex-gp/src/*.mjs apex-gp/tests/*.mjs; do node --check "$file"; done
           node apex-gp/tests/race-math.test.mjs
           rm -f Apex-GP.zip
@@ -276,6 +280,7 @@ jobs:
           rm -rf .bayside-gp-nav-patch /tmp/bayside-gp-nav.patch.gz /tmp/bayside-gp-nav.patch
           rm -rf .bayside-ai-hero /tmp/hero-racecar.webp
           rm -rf .race-setup-sidebar-patch .race-setup-sidebar-patch-v2 .race-setup-sidebar-patch-v3 .race-setup-sidebar-patch-final /tmp/race-setup-sidebar.patch.gz /tmp/race-setup-sidebar.patch
+          rm -rf .bayside-brand-layout-patch /tmp/bayside-brand-layout.patch.gz /tmp/bayside-brand-layout.patch
           rm -rf .room-network-patch /tmp/room-network.patch.gz /tmp/room-network.patch
           rm -rf .owner-crown-patch /tmp/owner-crown.patch.gz /tmp/owner-crown.patch
           rm -rf .owner-card-ui-patch /tmp/owner-card-ui.patch.gz /tmp/owner-card-ui.patch
