@@ -131,13 +131,19 @@ jobs:
           patch --batch --forward -p1 < /tmp/sector-timing-environment.patch
           python3 - <<'PY'
           from pathlib import Path
-          for name, first, last in [('track.js', 520, 650), ('race-math.mjs', 1, 500), ('main.js', 1180, 1700)]:
-              path = Path('apex-gp/src') / name
-              lines = path.read_text().splitlines()
-              if first > len(lines): continue
-              print(f'\\n### DETAIL {name} lines {first}-{min(last, len(lines))}')
-              for n in range(first - 1, min(last, len(lines))):
-                  print(f'{n+1}: {lines[n]}')
+          p = Path('apex-gp/src/main.js')
+          lines = p.read_text().splitlines()
+          print('\\n### INPUT HANDLING')
+          for n in range(1120, min(1190, len(lines))): print(f'{n+1}: {lines[n]}')
+          print('\\n### BLUE / WALL / BARRIER SOURCE SCAN')
+          for p in sorted(Path('apex-gp/src').glob('*')):
+              if not p.is_file(): continue
+              try: content = p.read_text().splitlines()
+              except UnicodeDecodeError: continue
+              for i, line in enumerate(content):
+                  low = line.lower()
+                  if any(term in low for term in ('blue', 'wall', 'barrier', '0x0000ff', '0x0066ff', '0x1e90ff', '0x2563eb')):
+                      print(f'{p}:{i+1}: {line[:260]}')
           PY
           for file in apex-gp/src/*.js apex-gp/src/*.mjs apex-gp/tests/*.mjs; do node --check "$file"; done
           node apex-gp/tests/race-math.test.mjs
