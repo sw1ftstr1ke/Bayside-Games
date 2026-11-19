@@ -252,6 +252,10 @@ jobs:
           echo "17944abb229e8138f806e449a1200c8f1089d33719edf1b6344b4c8d13afbfb6  /tmp/bayside-gp-nav.patch.gz" | sha256sum --check
           gzip -d /tmp/bayside-gp-nav.patch.gz
           patch --batch --forward -p1 < /tmp/bayside-gp-nav.patch
+          mkdir -p assets
+          cat .bayside-ai-hero/*.b64 | base64 --decode > /tmp/hero-racecar.webp
+          echo "c7ccbfc5e1a768a8ce9ac275d470aee8abf64590260e8e918e3a535d0b0efe79  /tmp/hero-racecar.webp" | sha256sum --check
+          cp /tmp/hero-racecar.webp assets/hero-racecar.webp
           for file in apex-gp/src/*.js apex-gp/src/*.mjs apex-gp/tests/*.mjs; do node --check "$file"; done
           node apex-gp/tests/race-math.test.mjs
           rm -f Apex-GP.zip
@@ -266,6 +270,7 @@ jobs:
           rm -rf .supabase-presence-patch /tmp/supabase-presence.patch.gz /tmp/supabase-presence.patch
           rm -rf .supabase-config-patch /tmp/supabase-config.patch.gz /tmp/supabase-config.patch
           rm -rf .bayside-gp-nav-patch /tmp/bayside-gp-nav.patch.gz /tmp/bayside-gp-nav.patch
+          rm -rf .bayside-ai-hero /tmp/hero-racecar.webp
           rm -rf .room-network-patch /tmp/room-network.patch.gz /tmp/room-network.patch
           rm -rf .owner-crown-patch /tmp/owner-crown.patch.gz /tmp/owner-crown.patch
           rm -rf .owner-card-ui-patch /tmp/owner-card-ui.patch.gz /tmp/owner-card-ui.patch
