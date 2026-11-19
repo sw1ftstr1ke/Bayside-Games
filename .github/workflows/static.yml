@@ -129,6 +129,21 @@ jobs:
           echo "68dbe6586f2e6c75e20609354ac931079ca16a2bd26b87f2ed8c38ba24b0ffe2  /tmp/sector-timing-environment.patch.gz" | sha256sum --check
           gzip -d /tmp/sector-timing-environment.patch.gz
           patch --batch --forward -p1 < /tmp/sector-timing-environment.patch
+          python3 - <<'PY'
+          from pathlib import Path
+          import re
+          for file in Path('apex-gp/src').glob('*.js'):
+              lines=file.read_text().splitlines()
+              hits=[i for i,line in enumerate(lines) if re.search(r'connecting|new Peer|Peer\\(|global.?presence|lobby|blue|wall|barrier|steer|turn',line,re.I)]
+              if hits:
+                  print('\\n### DIAGNOSTICS',file)
+                  shown=set()
+                  for i in hits:
+                      for n in range(max(0,i-3),min(len(lines),i+5)):
+                          if n not in shown:
+                              print(f'{n+1}: {lines[n]}')
+                              shown.add(n)
+          PY
           for file in apex-gp/src/*.js apex-gp/src/*.mjs apex-gp/tests/*.mjs; do node --check "$file"; done
           node apex-gp/tests/race-math.test.mjs
           rm -f Apex-GP.zip
