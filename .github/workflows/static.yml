@@ -32,6 +32,12 @@ jobs:
           unzip -tq /tmp/Apex-GP-Refined.zip
           rm -rf apex-gp
           unzip -oq /tmp/Apex-GP-Refined.zip -d .
+          echo "=== SOURCE FILES ==="
+          find apex-gp -type f | sort | head -100
+          echo "=== VEHICLE FACTORIES ==="
+          grep -RniE "createRacerCar|function.*Car|class.*Car|sidepod|frontWing|rearWing|halo" apex-gp/src | head -100 || true
+          echo "=== ENVIRONMENT / SKY ==="
+          grep -RniE "new THREE.Scene|sky|horizon|fog|background|ground|grass|tree|mountain" apex-gp/src | head -140 || true
           mkdir -p /tmp/apex-gp-overrides
           base64 --decode .overrides.bundle.b64 | tar -xz -C /tmp/apex-gp-overrides
           cp -a /tmp/apex-gp-overrides/apex-gp/. apex-gp/
