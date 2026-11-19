@@ -272,8 +272,13 @@ jobs:
           echo "215a345bd4c8a19153881eec83deed283922d92ed9c870f25a4dcbf228d4e498  /tmp/bayside-loading-wave-owner-gradient.patch.gz" | sha256sum --check
           gzip -d /tmp/bayside-loading-wave-owner-gradient.patch.gz
           patch --batch --forward -p1 < /tmp/bayside-loading-wave-owner-gradient.patch
+          cat .bayside-wave-fill-fix/*.b64 | tr -d '\r\n' | base64 --decode > /tmp/bayside-wave-fill-fix.patch.gz
+          echo "3a0ec7e7a3082f42dc3b870c10a4faacdb80cd92d3360043bc92b6382dff48da  /tmp/bayside-wave-fill-fix.patch.gz" | sha256sum --check
+          gzip -d /tmp/bayside-wave-fill-fix.patch.gz
+          patch --batch --forward -p1 < /tmp/bayside-wave-fill-fix.patch
           for file in apex-gp/src/*.js apex-gp/src/*.mjs apex-gp/tests/*.mjs; do node --check "$file"; done
           node apex-gp/tests/race-math.test.mjs
+          rm -rf .bayside-wave-fill-fix /tmp/bayside-wave-fill-fix.patch.gz /tmp/bayside-wave-fill-fix.patch
           rm -f Apex-GP.zip
           zip -qr Apex-GP.zip apex-gp
           unzip -tq Apex-GP.zip
