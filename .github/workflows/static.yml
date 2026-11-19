@@ -131,19 +131,84 @@ jobs:
           patch --batch --forward -p1 < /tmp/sector-timing-environment.patch
           python3 - <<'PY'
           from pathlib import Path
-          p = Path('apex-gp/src/main.js')
-          lines = p.read_text().splitlines()
-          print('\\n### INPUT HANDLING')
-          for n in range(1120, min(1190, len(lines))): print(f'{n+1}: {lines[n]}')
-          print('\\n### BLUE / WALL / BARRIER SOURCE SCAN')
-          for p in sorted(Path('apex-gp/src').glob('*')):
-              if not p.is_file(): continue
-              try: content = p.read_text().splitlines()
-              except UnicodeDecodeError: continue
-              for i, line in enumerate(content):
-                  low = line.lower()
-                  if any(term in low for term in ('blue', 'wall', 'barrier', '0x0000ff', '0x0066ff', '0x1e90ff', '0x2563eb')):
-                      print(f'{p}:{i+1}: {line[:260]}')
+
+          def replace_once(source, old, new, label):
+              count = source.count(old)
+              if count != 1:
+                  raise SystemExit(f'{label}: expected one match, found {count}')
+              return source.replace(old, new, 1)
+
+          # Make the global PeerJS relay resilient to pending connections. The old
+          # heartbeat started another connection every 12 seconds while the first
+          # was still negotiating, replacing its reference before it could open.
+          gpath = Path('apex-gp/src/global-presence.js')
+          g = gpath.read_text()
+          g = replace_once(g,
+              "const GLOBAL_HUB_ID = 'bayside-games-global-presence-hub-v1';",
+              "const GLOBAL_HUB_ID = 'bayside-games-global-presence-hub-v1';\\nconst PEER_OPTIONS = { debug: 0, config: { iceServers: [\\n  { urls: 'stun:stun.l.google.com:19302' },\\n  { urls: 'stun:global.stun.twilio.com:3478' }\\n] } };",
+              'PeerJS ICE configuration')
+          g = replace_once(g, 'new Peer(GLOBAL_HUB_ID, { debug: 0 })', 'new Peer(GLOBAL_HUB_ID, PEER_OPTIONS)', 'hub Peer')
+          g = replace_once(g, 'new Peer(undefined, { debug: 0 })', 'new Peer(undefined, PEER_OPTIONS)', 'guest Peer')
+          g = replace_once(g, '    this.hubConnection = null;\\n    this.retryTimer = null;', '    this.hubConnection = null;\\n    this.hubConnectTimer = null;\\n    this.hubConnectPending = false;\\n    this.retryTimer = null;', 'presence constructor')
+          g = replace_once(g, '    this.hubConnection = null;\\n\\n    peer.on(\'open\'', '    this.hubConnection = null;\\n    this.hubConnectPending = false;\\n\\n    peer.on(\'open\'', 'guest reset')
+          a = g.index('  async connectToHub() {')
+          b = g.index('\\n  async getPublicRoster()', a)
+          method = '''  async connectToHub() {
+            if (this.closing || this.isHub || !this.peer || !this.selfId || this.peer.destroyed) return;
+            // Keep a single in-flight attempt. A DataConnection is not open while
+            // negotiating, so checking only .open creates duplicate attempts.
+            if (this.hubConnection?.open || this.hubConnectPending) return;
+            const conn = this.peer.connect(GLOBAL_HUB_ID, { reliable: true, serialization: 'json' });
+            this.hubConnection = conn;
+            this.hubConnectPending = true;
+            this.hubConnectTimer = setTimeout(() => {
+              if (this.closing || this.hubConnection !== conn || conn.open) return;
+              this.hubConnection = null;
+              this.hubConnectPending = false;
+              this.hubConnectTimer = null;
+              try { conn.close(); } catch { /* connection already closed */ }
+              this.emit('status', 'RETRYING');
+              this.scheduleFailover();
+            }, 12000);
+            conn.on('open', async () => {
+              if (this.closing || this.hubConnection !== conn) return;
+              clearTimeout(this.hubConnectTimer);
+              this.hubConnectTimer = null;
+              this.hubConnectPending = false;
+              conn.send({ type: 'hello', profile: this.profile, ownerProof: await this.createOwnerProof(this.selfId) });
+              this.emit('status', 'CONNECTED');
+            });
+            conn.on('data', async data => {
+              if (!data || typeof data !== 'object') return;
+              if (data.type === 'welcome' || data.type === 'roster') await this.applyRoster(data.roster || []);
+              if (data.type === 'presence-status') this.emit('status', data.value || 'CONNECTED');
+            });
+            const disconnected = () => {
+              if (this.closing || this.hubConnection !== conn) return;
+              clearTimeout(this.hubConnectTimer);
+              this.hubConnectTimer = null;
+              this.hubConnection = null;
+              this.hubConnectPending = false;
+              this.emit('status', 'RECONNECTING');
+              try { conn.close(); } catch { /* already closed */ }
+              this.scheduleFailover();
+            };
+            conn.on('close', disconnected);
+            conn.on('error', disconnected);
+          }
+'''
+          g = g[:a] + method + g[b:]
+          g = replace_once(g, '  clearPeer() {\\n    if (this.peer) {', '  clearPeer() {\\n    clearTimeout(this.hubConnectTimer);\\n    this.hubConnectTimer = null;\\n    this.hubConnectPending = false;\\n    if (this.peer) {', 'clearPeer timer cleanup')
+          gpath.write_text(g)
+
+          # Ease keyboard steering and soften the steering/yaw response at speed.
+          mpath = Path('apex-gp/src/main.js')
+          m = mpath.read_text()
+          m = replace_once(m, 'input.steerTarget = rawSteer * (autoInput ? 1 : .72);', 'input.steerTarget = rawSteer * (autoInput ? 1 : .60);', 'keyboard steering range')
+          m = replace_once(m, 'const steerRate = input.steerTarget === 0 ? 7.5 : (autoInput ? 9 : 5.2);', 'const steerRate = input.steerTarget === 0 ? 6.8 : (autoInput ? 8.5 : 4.1);', 'steering input smoothing')
+          m = replace_once(m, 'const maxSteerAngle = lerp(.40, .16, speedRatio);', 'const maxSteerAngle = lerp(.34, .13, speedRatio);', 'steering angle limit')
+          m = replace_once(m, 'carState.yawRate = lerp(carState.yawRate, actualYawRate, 1 - Math.exp(-dt * (12 + speedAbs * .025)));', 'carState.yawRate = lerp(carState.yawRate, actualYawRate, 1 - Math.exp(-dt * (8.5 + speedAbs * .018)));', 'yaw response smoothing')
+          mpath.write_text(m)
           PY
           for file in apex-gp/src/*.js apex-gp/src/*.mjs apex-gp/tests/*.mjs; do node --check "$file"; done
           node apex-gp/tests/race-math.test.mjs
