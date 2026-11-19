@@ -286,7 +286,7 @@ jobs:
           patch --batch --forward -p1 < /tmp/room-owner-grid.patch
           for file in apex-gp/src/*.js apex-gp/src/*.mjs apex-gp/tests/*.mjs; do node --check "$file"; done
           node apex-gp/tests/race-math.test.mjs
-          node --experimental-default-type=module apex-gp/tests/room-network.test.mjs
+          node apex-gp/tests/room-network.test.mjs
           rm -rf .room-owner-grid-patch /tmp/room-owner-grid.patch.gz /tmp/room-owner-grid.patch
           rm -rf .bayside-autumn-theme-patch /tmp/bayside-autumn-theme.patch.gz /tmp/bayside-autumn-theme.patch
           rm -rf .bayside-wave-fill-fix /tmp/bayside-wave-fill-fix.patch.gz /tmp/bayside-wave-fill-fix.patch
