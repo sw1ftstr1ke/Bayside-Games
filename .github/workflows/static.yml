@@ -225,8 +225,8 @@ jobs:
         with:
           name: apex-source-inspection
           path: |
-            apex-gp/src/opponents.js
-            apex-gp/src/main.js
+            apex-gp/src/
+            apex-gp/tests/
           retention-days: 1
       - name: Setup Pages
         uses: actions/configure-pages@v5
