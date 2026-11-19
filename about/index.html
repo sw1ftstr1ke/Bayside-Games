@@ -20,9 +20,27 @@
         <span class="site-brand-text">BAYSIDE <b>GAMES</b></span>
       </span>
     </a>
-    <nav class="site-nav" aria-label="Main navigation"><a href="../apex-gp/">GAMES</a><a href="./" aria-current="page">ABOUT</a><a href="../">HOME</a></nav>
+    <nav class="site-nav" aria-label="Main navigation"><a href="../apex-gp/">GAMES</a><a href="./" aria-current="page">ABOUT</a><a href="../">HOME</a><button class="site-players-toggle" id="site-players-toggle" type="button" aria-expanded="true" aria-controls="site-players-panel"><span>♟</span><small>PLAYERS <b id="site-player-nav-count">0</b></small></button></nav>
   </header>
+  
+  <aside class="site-players-panel collapsed" id="site-players-panel" aria-label="Online players" aria-live="polite">
+    <div class="site-players-heading">
+      <div><span class="site-players-kicker">BAYSIDE GAMES COMMUNITY</span><h2>PLAYERS</h2></div>
+      <button id="site-players-close" type="button" aria-label="Hide online players">×</button>
+    </div>
+    <div class="site-player-profile">
+      <label for="site-player-name">YOUR DISPLAY NAME</label>
+      <div class="site-player-edit"><input id="site-player-name" type="text" maxlength="18" value="RACER" autocomplete="nickname" placeholder="CHOOSE A NICKNAME" /><button id="site-player-name-save" type="button">SET</button></div>
+      <small>Choose a nickname. Avoid personal details.</small>
+    </div>
+    <div class="site-player-room-strip"><i></i><span>WEBSITE ONLINE</span><b id="site-player-count">0 ONLINE</b></div>
+    <div class="site-player-list" id="site-player-list"><div class="site-player-empty">Connecting to the global player list…</div></div>
+    <div class="site-player-footer"><span class="site-player-footer-indicator"></span><span>GLOBAL PRESENCE</span><b id="site-player-footer-status">CONNECTING</b><button id="site-player-owner-login" type="button">OWNER LOGIN</button></div>
+  </aside>
+  <div class="site-page-shell">
   <main class="about-main"><section class="about-panel"><div class="eyebrow">THE STORY BEHIND THE GAMES</div><h1>ABOUT<br>BAYSIDE.</h1><p>This page is being built. Check back soon for more about Bayside Games, the projects and what is coming next.</p><a class="button-primary" href="../">BACK HOME <span>↗</span></a></section></main>
   <footer class="site-footer"><span>© BAYSIDE GAMES</span><span>MORE DETAILS COMING SOON</span></footer>
+  </div>
+  <script type="module" src="../assets/site-presence.js"></script>
 </body>
 </html>
