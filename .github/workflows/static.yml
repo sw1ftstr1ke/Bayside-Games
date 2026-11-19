@@ -32,10 +32,6 @@ jobs:
           unzip -tq /tmp/Apex-GP-Refined.zip
           rm -rf apex-gp
           unzip -oq /tmp/Apex-GP-Refined.zip -d .
-          echo '===== OPPONENTS SOURCE ====='
-          sed -n '1,280p' apex-gp/src/opponents.js
-          echo '===== MAIN ENVIRONMENT MATCHES ====='
-          grep -n -E 'Fog|fog|Sky|sky|horizon|ground|landscape|mountain|environment|create.*Tree|create.*Car' apex-gp/src/main.js | head -100
           mkdir -p /tmp/apex-gp-overrides
           base64 --decode .overrides.bundle.b64 | tar -xz -C /tmp/apex-gp-overrides
           cp -a /tmp/apex-gp-overrides/apex-gp/. apex-gp/
