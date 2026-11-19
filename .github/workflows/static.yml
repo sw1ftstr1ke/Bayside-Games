@@ -248,6 +248,10 @@ jobs:
           echo "b92c124b975463d19797ea430fb505557c67cd8eb908e8df25ca3cc2ab16efa5  /tmp/owner-card-ui.patch.gz" | sha256sum --check
           gzip -d /tmp/owner-card-ui.patch.gz
           patch --batch --forward -p1 < /tmp/owner-card-ui.patch
+          cat .bayside-gp-nav-patch/*.b64 | base64 --decode > /tmp/bayside-gp-nav.patch.gz
+          echo "17944abb229e8138f806e449a1200c8f1089d33719edf1b6344b4c8d13afbfb6  /tmp/bayside-gp-nav.patch.gz" | sha256sum --check
+          gzip -d /tmp/bayside-gp-nav.patch.gz
+          patch --batch --forward -p1 < /tmp/bayside-gp-nav.patch
           for file in apex-gp/src/*.js apex-gp/src/*.mjs apex-gp/tests/*.mjs; do node --check "$file"; done
           node apex-gp/tests/race-math.test.mjs
           rm -f Apex-GP.zip
@@ -261,6 +265,7 @@ jobs:
           rm -rf .sunny-loader-patch /tmp/sunny-loader.patch.gz /tmp/sunny-loader.patch
           rm -rf .supabase-presence-patch /tmp/supabase-presence.patch.gz /tmp/supabase-presence.patch
           rm -rf .supabase-config-patch /tmp/supabase-config.patch.gz /tmp/supabase-config.patch
+          rm -rf .bayside-gp-nav-patch /tmp/bayside-gp-nav.patch.gz /tmp/bayside-gp-nav.patch
           rm -rf .room-network-patch /tmp/room-network.patch.gz /tmp/room-network.patch
           rm -rf .owner-crown-patch /tmp/owner-crown.patch.gz /tmp/owner-crown.patch
           rm -rf .owner-card-ui-patch /tmp/owner-card-ui.patch.gz /tmp/owner-card-ui.patch
