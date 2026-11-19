@@ -268,6 +268,10 @@ jobs:
           echo "f822f1103cfe9d30ac43dca228239be1c6aebb4d4f5862f1c33ec0f605863547  /tmp/bayside-logo-unify.patch.gz" | sha256sum --check
           gzip -d /tmp/bayside-logo-unify.patch.gz
           patch --batch --forward -p1 < /tmp/bayside-logo-unify.patch
+          cat .bayside-loading-wave-owner-gradient/*.b64 | tr -d '\r\n' | base64 --decode > /tmp/bayside-loading-wave-owner-gradient.patch.gz
+          echo "215a345bd4c8a19153881eec83deed283922d92ed9c870f25a4dcbf228d4e498  /tmp/bayside-loading-wave-owner-gradient.patch.gz" | sha256sum --check
+          gzip -d /tmp/bayside-loading-wave-owner-gradient.patch.gz
+          patch --batch --forward -p1 < /tmp/bayside-loading-wave-owner-gradient.patch
           for file in apex-gp/src/*.js apex-gp/src/*.mjs apex-gp/tests/*.mjs; do node --check "$file"; done
           node apex-gp/tests/race-math.test.mjs
           rm -f Apex-GP.zip
@@ -286,6 +290,7 @@ jobs:
           rm -rf .race-setup-sidebar-patch .race-setup-sidebar-patch-v2 .race-setup-sidebar-patch-v3 .race-setup-sidebar-patch-final /tmp/race-setup-sidebar.patch.gz /tmp/race-setup-sidebar.patch
           rm -rf .bayside-brand-layout-patch /tmp/bayside-brand-layout.patch.gz /tmp/bayside-brand-layout.patch
           rm -rf .bayside-logo-unify-patch /tmp/bayside-logo-unify.patch.gz /tmp/bayside-logo-unify.patch
+          rm -rf .bayside-loading-wave-owner-gradient /tmp/bayside-loading-wave-owner-gradient.patch.gz /tmp/bayside-loading-wave-owner-gradient.patch
           rm -rf .room-network-patch /tmp/room-network.patch.gz /tmp/room-network.patch
           rm -rf .owner-crown-patch /tmp/owner-crown.patch.gz /tmp/owner-crown.patch
           rm -rf .owner-card-ui-patch /tmp/owner-card-ui.patch.gz /tmp/owner-card-ui.patch
