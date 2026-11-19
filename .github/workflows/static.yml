@@ -244,6 +244,10 @@ jobs:
           echo "751652c219d77a2b67abb14aa0ae81716b9c5095d14a871feb27a21309826e04  /tmp/owner-crown.patch.gz" | sha256sum --check
           gzip -d /tmp/owner-crown.patch.gz
           patch --batch --forward -p1 < /tmp/owner-crown.patch
+          cat .owner-card-ui-patch/*.b64 | base64 --decode > /tmp/owner-card-ui.patch.gz
+          echo "b92c124b975463d19797ea430fb505557c67cd8eb908e8df25ca3cc2ab16efa5  /tmp/owner-card-ui.patch.gz" | sha256sum --check
+          gzip -d /tmp/owner-card-ui.patch.gz
+          patch --batch --forward -p1 < /tmp/owner-card-ui.patch
           for file in apex-gp/src/*.js apex-gp/src/*.mjs apex-gp/tests/*.mjs; do node --check "$file"; done
           node apex-gp/tests/race-math.test.mjs
           rm -f Apex-GP.zip
@@ -259,6 +263,7 @@ jobs:
           rm -rf .supabase-config-patch /tmp/supabase-config.patch.gz /tmp/supabase-config.patch
           rm -rf .room-network-patch /tmp/room-network.patch.gz /tmp/room-network.patch
           rm -rf .owner-crown-patch /tmp/owner-crown.patch.gz /tmp/owner-crown.patch
+          rm -rf .owner-card-ui-patch /tmp/owner-card-ui.patch.gz /tmp/owner-card-ui.patch
           rm -rf .refined-parts .monza-parts .apex-gp-parts /tmp/Apex-GP-Refined.zip
       - name: Setup Pages
         uses: actions/configure-pages@v5
