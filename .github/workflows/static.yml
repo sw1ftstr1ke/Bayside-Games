@@ -208,7 +208,10 @@ jobs:
           m = mpath.read_text()
           m = replace_once(m, 'input.steerTarget = rawSteer * (autoInput ? 1 : .72);', 'input.steerTarget = rawSteer * (autoInput ? 1 : .60);', 'keyboard steering range')
           m = replace_once(m, 'const steerRate = input.steerTarget === 0 ? 7.5 : (autoInput ? 9 : 5.2);', 'const steerRate = input.steerTarget === 0 ? 6.8 : (autoInput ? 8.5 : 4.1);', 'steering input smoothing')
-          m, count = re.subn(r'const maxSteerAngle = lerp\\([^;]+;', 'const maxSteerAngle = lerp(.34, .13, speedRatio);', m)
+          angle_start = m.find('const maxSteerAngle = lerp(')
+          angle_end = m.find(';', angle_start)
+          if angle_start < 0 or angle_end < 0: raise SystemExit('steering angle limit: could not locate steering expression')
+          m = m[:angle_start] + 'const maxSteerAngle = lerp(.34, .13, speedRatio);' + m[angle_end + 1:]
           if count != 1:
               raise SystemExit(f'steering angle limit: expected one match, found {count}')
           mpath.write_text(m)
