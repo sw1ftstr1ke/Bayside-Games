@@ -224,6 +224,10 @@ jobs:
           echo "f5b1a9332aff52ffe624aa8cfefcbd3a4c7d287188ce8726b983e604e03e1a53  /tmp/ers-tyres-pit.patch.gz" | sha256sum --check
           gzip -d /tmp/ers-tyres-pit.patch.gz
           patch --batch --forward -p1 < /tmp/ers-tyres-pit.patch
+          cat .sunny-loader-patch/*.b64 | base64 --decode > /tmp/sunny-loader.patch.gz
+          echo "db57a388fc964f38d9b4b68d22a3a58cb383834ef86b579db210f82793ccce30  /tmp/sunny-loader.patch.gz" | sha256sum --check
+          gzip -d /tmp/sunny-loader.patch.gz
+          patch --batch --forward -p1 < /tmp/sunny-loader.patch
           for file in apex-gp/src/*.js apex-gp/src/*.mjs apex-gp/tests/*.mjs; do node --check "$file"; done
           node apex-gp/tests/race-math.test.mjs
           rm -f Apex-GP.zip
@@ -234,6 +238,7 @@ jobs:
           rm -rf .visual-upgrade-patch /tmp/visual-upgrade.patch.gz /tmp/visual-upgrade.patch
           rm -rf .leaderboard-room-patch /tmp/leaderboard-room.patch.gz /tmp/leaderboard-room.patch
           rm -rf .ers-tyres-pit-patch /tmp/ers-tyres-pit.patch.gz /tmp/ers-tyres-pit.patch
+          rm -rf .sunny-loader-patch /tmp/sunny-loader.patch.gz /tmp/sunny-loader.patch
           rm -rf .refined-parts .monza-parts .apex-gp-parts /tmp/Apex-GP-Refined.zip
       - name: Setup Pages
         uses: actions/configure-pages@v5
