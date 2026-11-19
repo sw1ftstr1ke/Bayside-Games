@@ -131,16 +131,11 @@ jobs:
           patch --batch --forward -p1 < /tmp/sector-timing-environment.patch
           python3 - <<'PY'
           from pathlib import Path
-          for name, first, last in [('global-presence.js', 1, 430), ('track.js', 1, 520)]:
+          for name, first, last in [('track.js', 520, 650), ('race-math.mjs', 1, 500), ('main.js', 1180, 1700)]:
               path = Path('apex-gp/src') / name
               lines = path.read_text().splitlines()
-              print(f'\\n### FULL {name} lines {first}-{min(last, len(lines))}')
-              for n in range(first - 1, min(last, len(lines))):
-                  print(f'{n+1}: {lines[n]}')
-          path = Path('apex-gp/src/main.js')
-          lines = path.read_text().splitlines()
-          for first, last in [(700, 950), (950, 1200)]:
-              print(f'\\n### MAIN lines {first}-{min(last, len(lines))}')
+              if first > len(lines): continue
+              print(f'\\n### DETAIL {name} lines {first}-{min(last, len(lines))}')
               for n in range(first - 1, min(last, len(lines))):
                   print(f'{n+1}: {lines[n]}')
           PY
