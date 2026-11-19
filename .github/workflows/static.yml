@@ -131,18 +131,18 @@ jobs:
           patch --batch --forward -p1 < /tmp/sector-timing-environment.patch
           python3 - <<'PY'
           from pathlib import Path
-          terms = ('connecting', 'new Peer', 'Peer(', 'global', 'lobby', 'blue', 'wall', 'barrier', 'steer', 'turn')
-          for file in Path('apex-gp/src').glob('*.js'):
-              lines = file.read_text().splitlines()
-              hits = [i for i, line in enumerate(lines) if any(term in line.lower() for term in terms)]
-              if hits:
-                  print('\\n### DIAGNOSTICS', file)
-                  shown = set()
-                  for i in hits:
-                      for n in range(max(0, i - 3), min(len(lines), i + 5)):
-                          if n not in shown:
-                              print(f'{n+1}: {lines[n]}')
-                              shown.add(n)
+          for name, first, last in [('global-presence.js', 1, 430), ('track.js', 1, 520)]:
+              path = Path('apex-gp/src') / name
+              lines = path.read_text().splitlines()
+              print(f'\\n### FULL {name} lines {first}-{min(last, len(lines))}')
+              for n in range(first - 1, min(last, len(lines))):
+                  print(f'{n+1}: {lines[n]}')
+          path = Path('apex-gp/src/main.js')
+          lines = path.read_text().splitlines()
+          for first, last in [(700, 950), (950, 1200)]:
+              print(f'\\n### MAIN lines {first}-{min(last, len(lines))}')
+              for n in range(first - 1, min(last, len(lines))):
+                  print(f'{n+1}: {lines[n]}')
           PY
           for file in apex-gp/src/*.js apex-gp/src/*.mjs apex-gp/tests/*.mjs; do node --check "$file"; done
           node apex-gp/tests/race-math.test.mjs
