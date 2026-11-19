@@ -131,15 +131,15 @@ jobs:
           patch --batch --forward -p1 < /tmp/sector-timing-environment.patch
           python3 - <<'PY'
           from pathlib import Path
-          import re
+          terms = ('connecting', 'new Peer', 'Peer(', 'global', 'lobby', 'blue', 'wall', 'barrier', 'steer', 'turn')
           for file in Path('apex-gp/src').glob('*.js'):
-              lines=file.read_text().splitlines()
-              hits=[i for i,line in enumerate(lines) if re.search(r'connecting|new Peer|Peer\\(|global.?presence|lobby|blue|wall|barrier|steer|turn',line,re.I)]
+              lines = file.read_text().splitlines()
+              hits = [i for i, line in enumerate(lines) if any(term in line.lower() for term in terms)]
               if hits:
-                  print('\\n### DIAGNOSTICS',file)
-                  shown=set()
+                  print('\\n### DIAGNOSTICS', file)
+                  shown = set()
                   for i in hits:
-                      for n in range(max(0,i-3),min(len(lines),i+5)):
+                      for n in range(max(0, i - 3), min(len(lines), i + 5)):
                           if n not in shown:
                               print(f'{n+1}: {lines[n]}')
                               shown.add(n)
