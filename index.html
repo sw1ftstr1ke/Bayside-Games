@@ -46,8 +46,27 @@
   <div class="site-page-shell">
   <main>
     <section class="hero">
-      <img class="hero-art" src="./assets/hero-racecar.webp" alt="A formula-style race car speeding around a circuit at sunset" />
-      <div class="hero-wave-layer" aria-hidden="true"><svg viewBox="0 0 1600 340" preserveAspectRatio="none"><path d="M0 180 C100 110 200 110 300 180 S500 250 600 180 S800 110 900 180 S1100 250 1200 180 S1400 110 1500 180 S1700 250 1800 180"/><path d="M0 220 C120 150 240 150 360 220 S600 290 720 220 S960 150 1080 220 S1320 290 1440 220 S1680 150 1800 220"/><path d="M0 260 C140 205 280 205 420 260 S700 315 840 260 S1120 205 1260 260 S1540 315 1680 260"/></svg></div>
+      <div class="hero-wave-layer" aria-hidden="true">
+        <svg viewBox="0 0 1800 500" preserveAspectRatio="none">
+          <defs>
+            <linearGradient id="autumn-wave-back" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#a95635" stop-opacity=".38"/><stop offset="1" stop-color="#3c241c" stop-opacity=".78"/></linearGradient>
+            <linearGradient id="autumn-wave-mid" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#d08043" stop-opacity=".5"/><stop offset="1" stop-color="#8d472b" stop-opacity=".87"/></linearGradient>
+            <linearGradient id="autumn-wave-front" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#e5a85f" stop-opacity=".44"/><stop offset=".45" stop-color="#a95635" stop-opacity=".82"/><stop offset="1" stop-color="#38231c" stop-opacity=".98"/></linearGradient>
+            <linearGradient id="autumn-wave-glint" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#f2c27a" stop-opacity="0"/><stop offset=".48" stop-color="#f2c27a" stop-opacity=".65"/><stop offset="1" stop-color="#f2c27a" stop-opacity="0"/></linearGradient>
+          </defs>
+          <g class="hero-wave-back">
+            <path fill="url(#autumn-wave-back)" d="M0 250 C150 160 300 160 450 250 S750 340 900 250 C1050 160 1200 160 1350 250 S1650 340 1800 250 L1800 500 L0 500Z"/>
+          </g>
+          <g class="hero-wave-mid">
+            <path fill="url(#autumn-wave-mid)" d="M0 315 C150 225 300 225 450 315 S750 405 900 315 C1050 225 1200 225 1350 315 S1650 405 1800 315 L1800 500 L0 500Z"/>
+          </g>
+          <g class="hero-wave-front">
+            <path fill="url(#autumn-wave-front)" d="M0 380 C150 300 300 300 450 380 S750 460 900 380 C1050 300 1200 300 1350 380 S1650 460 1800 380 L1800 500 L0 500Z"/>
+            <path fill="none" stroke="url(#autumn-wave-glint)" stroke-width="2.5" d="M0 380 C150 300 300 300 450 380 S750 460 900 380 C1050 300 1200 300 1350 380 S1650 460 1800 380"/>
+          </g>
+        </svg>
+      </div>
+      <div class="autumn-leaves" aria-hidden="true"><span></span><span></span><span></span><span></span><span></span><span></span><span></span></div>
       <div class="hero-copy">
         <div class="eyebrow">YOUR NEXT CHALLENGE STARTS HERE</div>
         <h1><span>WELCOME TO</span><em>BAYSIDE GAMES</em></h1>
