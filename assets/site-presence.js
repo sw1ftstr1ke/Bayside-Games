@@ -122,6 +122,8 @@ function render() {
   const count = roster.length;
   const connected = status === 'CONNECTED';
   $('site-player-count').textContent = `${count} ONLINE`;
+  const navCount = $('site-player-nav-count');
+  if (navCount) navCount.textContent = String(count);
   $('site-player-footer-status').textContent = connected ? 'CONNECTED' : status.replace(/_/g, ' ');
   $('site-player-owner-login').textContent = ownerVerified ? 'OWNER VERIFIED' : 'OWNER LOGIN';
   $('site-player-owner-login').classList.toggle('owner-verified', ownerVerified);
