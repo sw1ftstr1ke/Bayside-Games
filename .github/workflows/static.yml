@@ -256,7 +256,7 @@ jobs:
           cat .bayside-ai-hero/*.b64 | base64 --decode > /tmp/hero-racecar.webp
           echo "c7ccbfc5e1a768a8ce9ac275d470aee8abf64590260e8e918e3a535d0b0efe79  /tmp/hero-racecar.webp" | sha256sum --check
           cp /tmp/hero-racecar.webp assets/hero-racecar.webp
-          cat .race-setup-sidebar-patch/*.b64 | base64 --decode > /tmp/race-setup-sidebar.patch.gz
+          cat .race-setup-sidebar-patch-v3/*.b64 | tr -d '\\r\\n' | base64 --decode > /tmp/race-setup-sidebar.patch.gz
           echo "725e2af49adb7d229afd9bd833adb3a62660394761d03f9ee0d950a5eec653f8  /tmp/race-setup-sidebar.patch.gz" | sha256sum --check
           gzip -d /tmp/race-setup-sidebar.patch.gz
           patch --batch --forward -p1 < /tmp/race-setup-sidebar.patch
@@ -275,7 +275,7 @@ jobs:
           rm -rf .supabase-config-patch /tmp/supabase-config.patch.gz /tmp/supabase-config.patch
           rm -rf .bayside-gp-nav-patch /tmp/bayside-gp-nav.patch.gz /tmp/bayside-gp-nav.patch
           rm -rf .bayside-ai-hero /tmp/hero-racecar.webp
-          rm -rf .race-setup-sidebar-patch /tmp/race-setup-sidebar.patch.gz /tmp/race-setup-sidebar.patch
+          rm -rf .race-setup-sidebar-patch .race-setup-sidebar-patch-v2 .race-setup-sidebar-patch-v3 .race-setup-sidebar-patch-final /tmp/race-setup-sidebar.patch.gz /tmp/race-setup-sidebar.patch
           rm -rf .room-network-patch /tmp/room-network.patch.gz /tmp/room-network.patch
           rm -rf .owner-crown-patch /tmp/owner-crown.patch.gz /tmp/owner-crown.patch
           rm -rf .owner-card-ui-patch /tmp/owner-card-ui.patch.gz /tmp/owner-card-ui.patch
