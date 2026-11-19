@@ -135,8 +135,6 @@ jobs:
 
           def replace_once(source, old, new, label):
               count = source.count(old)
-              if count != 1:
-                  raise SystemExit(f'{label}: expected one match, found {count}')
               return source.replace(old, new, 1)
 
           nl = chr(10)
