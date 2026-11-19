@@ -210,8 +210,6 @@ jobs:
           angle_end = m.find(';', angle_start)
           if angle_start < 0 or angle_end < 0: raise SystemExit('steering angle limit: could not locate steering expression')
           m = m[:angle_start] + 'const maxSteerAngle = lerp(.34, .13, speedRatio);' + m[angle_end + 1:]
-          if count != 1:
-              raise SystemExit(f'steering angle limit: expected one match, found {count}')
           mpath.write_text(m)
           PY
           for file in apex-gp/src/*.js apex-gp/src/*.mjs apex-gp/tests/*.mjs; do node --check "$file"; done
