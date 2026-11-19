@@ -228,6 +228,10 @@ jobs:
           echo "343cc968c6cb8f4d12183d7e1cd45c310514430e67a0a5f794b4299d1529a1b5  /tmp/sunny-loader.patch.gz" | sha256sum --check
           gzip -d /tmp/sunny-loader.patch.gz
           patch --batch --forward -p1 < /tmp/sunny-loader.patch
+          cat .supabase-presence-patch/*.b64 | base64 --decode > /tmp/supabase-presence.patch.gz
+          echo "000a3ef22639586eb5e8b9bd4bb099ea6903fe963aefb634b69f84986f0b3eae  /tmp/supabase-presence.patch.gz" | sha256sum --check
+          gzip -d /tmp/supabase-presence.patch.gz
+          patch --batch --forward -p1 < /tmp/supabase-presence.patch
           for file in apex-gp/src/*.js apex-gp/src/*.mjs apex-gp/tests/*.mjs; do node --check "$file"; done
           node apex-gp/tests/race-math.test.mjs
           rm -f Apex-GP.zip
@@ -239,6 +243,7 @@ jobs:
           rm -rf .leaderboard-room-patch /tmp/leaderboard-room.patch.gz /tmp/leaderboard-room.patch
           rm -rf .ers-tyres-pit-patch /tmp/ers-tyres-pit.patch.gz /tmp/ers-tyres-pit.patch
           rm -rf .sunny-loader-patch /tmp/sunny-loader.patch.gz /tmp/sunny-loader.patch
+          rm -rf .supabase-presence-patch /tmp/supabase-presence.patch.gz /tmp/supabase-presence.patch
           rm -rf .refined-parts .monza-parts .apex-gp-parts /tmp/Apex-GP-Refined.zip
       - name: Setup Pages
         uses: actions/configure-pages@v5
