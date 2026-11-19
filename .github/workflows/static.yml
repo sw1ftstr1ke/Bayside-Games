@@ -220,6 +220,14 @@ jobs:
           rm -rf /tmp/apex-gp-overrides /tmp/main-update.patch .overrides.bundle.b64 .main.patch.gz.b64 .overlay-files .track-camera-patch /tmp/track-camera.patch .driving-update-patch /tmp/driving-update.patch.gz /tmp/driving-update.patch .launcher-braking-patch /tmp/launcher-braking.patch.gz /tmp/launcher-braking.patch .online-players-patch /tmp/online-players.patch.gz /tmp/online-players.patch .player-panel-layout-patch /tmp/player-panel-layout.patch.gz /tmp/player-panel-layout.patch .global-presence-patch /tmp/global-presence.patch.gz /tmp/global-presence.patch
           rm -rf .sector-timing-environment-patch /tmp/sector-timing-environment.patch.b64 /tmp/sector-timing-environment.patch.gz /tmp/sector-timing-environment.patch
           rm -rf .refined-parts .monza-parts .apex-gp-parts /tmp/Apex-GP-Refined.zip
+      - name: Temporary source inspection artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: apex-source-inspection
+          path: |
+            apex-gp/src/opponents.js
+            apex-gp/src/main.js
+          retention-days: 1
       - name: Setup Pages
         uses: actions/configure-pages@v5
       - name: Upload artifact
