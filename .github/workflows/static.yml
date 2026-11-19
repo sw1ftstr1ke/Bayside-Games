@@ -123,6 +123,7 @@ jobs:
           cat .global-presence-patch/*.b64 | base64 --decode > /tmp/global-presence.patch.gz
           echo "8f4647fe360f76103b902d107c95267280507047fd355f27e58dd90fc721c001  /tmp/global-presence.patch.gz" | sha256sum --check
           gzip -d /tmp/global-presence.patch.gz
+          patch --batch --forward -p1 < /tmp/global-presence.patch
           cp .sector-timing-environment-patch/00.b64 /tmp/sector-timing-environment.patch.b64
           base64 --decode /tmp/sector-timing-environment.patch.b64 > /tmp/sector-timing-environment.patch.gz
           echo "68dbe6586f2e6c75e20609354ac931079ca16a2bd26b87f2ed8c38ba24b0ffe2  /tmp/sector-timing-environment.patch.gz" | sha256sum --check
