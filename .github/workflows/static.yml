@@ -236,6 +236,10 @@ jobs:
           echo "3f3e194c86e33d331a8822951dc4373a665d7eb57487f51aa3ff86cf3c140a80  /tmp/supabase-config.patch.gz" | sha256sum --check
           gzip -d /tmp/supabase-config.patch.gz
           patch --batch --forward -p1 < /tmp/supabase-config.patch
+          cat .room-network-patch/*.b64 | base64 --decode > /tmp/room-network.patch.gz
+          echo "0d8c3e3dc467de45cd1d9debf9d4cb99036c81e8a53415a1cc372833fe1731ca  /tmp/room-network.patch.gz" | sha256sum --check
+          gzip -d /tmp/room-network.patch.gz
+          patch --batch --forward -p1 < /tmp/room-network.patch
           for file in apex-gp/src/*.js apex-gp/src/*.mjs apex-gp/tests/*.mjs; do node --check "$file"; done
           node apex-gp/tests/race-math.test.mjs
           rm -f Apex-GP.zip
@@ -249,6 +253,7 @@ jobs:
           rm -rf .sunny-loader-patch /tmp/sunny-loader.patch.gz /tmp/sunny-loader.patch
           rm -rf .supabase-presence-patch /tmp/supabase-presence.patch.gz /tmp/supabase-presence.patch
           rm -rf .supabase-config-patch /tmp/supabase-config.patch.gz /tmp/supabase-config.patch
+          rm -rf .room-network-patch /tmp/room-network.patch.gz /tmp/room-network.patch
           rm -rf .refined-parts .monza-parts .apex-gp-parts /tmp/Apex-GP-Refined.zip
       - name: Setup Pages
         uses: actions/configure-pages@v5
