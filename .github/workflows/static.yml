@@ -293,10 +293,94 @@ jobs:
           echo "7b51ce6ba1c1a965453043bd70bef9e420959274d2ee543a0e3c085a0f50c9dc  /tmp/launch-traffic.patch.gz" | sha256sum --check
           gzip -d /tmp/launch-traffic.patch.gz
           patch --batch --forward -p1 < /tmp/launch-traffic.patch
-          cat .ai-speed-leaderboard-patch/*.b64 | tr -d '\r\n' | base64 --decode > /tmp/ai-speed-leaderboard.patch.gz
-          echo "5d23d02192dd6b5c75286ce30f3e6bd919faadcdbbbe0e811ac7dec9510a165e  /tmp/ai-speed-leaderboard.patch.gz" | sha256sum --check
-          gzip -d /tmp/ai-speed-leaderboard.patch.gz
-          patch --batch --forward -p1 < /tmp/ai-speed-leaderboard.patch
+          python3 - <<'PY'
+          from pathlib import Path
+
+          def once(source, old, new, label):
+              count = source.count(old)
+              if count != 1:
+                  raise SystemExit(f"{label}: expected one match, found {count}")
+              return source.replace(old, new, 1)
+
+          main_path = Path('apex-gp/src/main.js')
+          main = main_path.read_text()
+          main = once(main,
+              'calculateERSFlow, tyreGripFactor, calculateTyreWearRate }',
+              'calculateERSFlow, tyreGripFactor, calculateTyreWearRate, collisionSpeedAfterContact }',
+              'collision helper import')
+          main = once(main, '  const radius = 2.55;\\n  for (let i=0;i<bodies.length;i++)',
+              '  const radius = 2.55;\\n  const contactedBots = new Set();\\n  for (let i=0;i<bodies.length;i++)', 'collision contact set')
+          main = once(main, '    const nx=dx/dist, nz=dz/dist, overlap=radius-dist;\\n    const ad=a.kind!==\'remote\'',
+              '    const nx=dx/dist, nz=dz/dist, overlap=radius-dist;\\n    if (a.kind === \'bot\') contactedBots.add(a.bot);\\n    if (b.kind === \'bot\') contactedBots.add(b.bot);\\n    const ad=a.kind!==\'remote\'', 'contact tracking')
+          main = once(main, "    else if (a.kind==='bot') { a.x-=nx*overlap*as; a.z-=nz*overlap*as; a.bot.speed=Math.max(0,a.bot.speed*.88-1.2); }",
+              "    else if (a.kind==='bot') { a.x-=nx*overlap*as; a.z-=nz*overlap*as; }", 'bot A collision response')
+          main = once(main, "    else if (b.kind==='bot') { b.x+=nx*overlap*bs; b.z+=nz*overlap*bs; b.bot.speed=Math.max(0,b.bot.speed*.88-1.2); }",
+              "    else if (b.kind==='bot') { b.x+=nx*overlap*bs; b.z+=nz*overlap*bs; }", 'bot B collision response')
+          main = once(main, "  for (const body of bodies) if (body.kind==='bot') {\\n    // Resolve the small contact displacement",
+              "  for (const bot of contactedBots) {\\n    const body = bodies.find(item => item.kind === 'bot' && item.bot === bot);\\n    if (!body) continue;\\n    // Resolve the small contact displacement", 'contact-only correction')
+          main = once(main, '    body.bot.speed = Math.max(0, body.bot.speed * .88);',
+              '    body.bot.speed = collisionSpeedAfterContact(body.bot.speed);', 'contact speed loss')
+          main_path.write_text(main)
+
+          math_path = Path('apex-gp/src/race-math.mjs')
+          math = math_path.read_text()
+          math += "\\n// AI speed changes only when a real contact is resolved.\\nexport function collisionSpeedAfterContact(speed) {\\n  const safeSpeed = Math.max(0, Number.isFinite(speed) ? speed : 0);\\n  return Math.max(0, safeSpeed * .94 - .35);\\n}\\n"
+          math_path.write_text(math)
+
+          presence_path = Path('apex-gp/src/global-presence.js')
+          presence = presence_path.read_text()
+          presence = once(presence, '    this.leaderboard = new Map();\\n', '    this.leaderboard = new Map();\\n    this.pendingLap = null;\\n', 'pending lap queue')
+          presence = once(presence, "      conn.send({ type: 'hello', profile: this.profile, ownerProof: await this.createOwnerProof(this.selfId) });\\n      this.emit('status', 'CONNECTED');",
+              "      conn.send({ type: 'hello', profile: this.profile, ownerProof: await this.createOwnerProof(this.selfId) });\\n      this.emit('status', 'CONNECTED');\\n      this.sendPendingLap();", 'send queued lap on connect')
+          presence = once(presence, "        const ownBest = this.leaderboard.get(this.profile.driverId);\\n        if (ownBest && this.hubConnection?.open) this.hubConnection.send({ type: 'lap-submit', seconds: ownBest.seconds });",
+              "        const ownBest = this.leaderboard.get(this.profile.driverId);\\n        if (ownBest && !this.pendingLap) this.pendingLap = ownBest;\\n        this.sendPendingLap();", 'sync own best on welcome')
+          presence = once(presence, "    if (!this.hubConnection?.open) {\\n      this.connectToHub();\\n      return;\\n    }",
+              "    if (!this.hubConnection?.open) {\\n      this.connectToHub();\\n      return;\\n    }\\n    this.sendPendingLap();", 'retry queued lap on heartbeat')
+          old = """    const improved = this.mergeLeaderboard([record], false);
+            if (this.isHub) {
+              if (improved) this.broadcastLeaderboard();
+            } else if (this.hubConnection?.open) {
+              this.hubConnection.send({ type: 'lap-submit', seconds: record.seconds });
+            }
+            return improved;
+          }
+
+          broadcastLeaderboard() {"""
+          new = """    const improved = this.mergeLeaderboard([record], false);
+            if (improved) {
+              this.pendingLap = record;
+              if (this.isHub) {
+                this.pendingLap = null;
+                this.broadcastLeaderboard();
+              } else {
+                this.sendPendingLap();
+              }
+            }
+            return improved;
+          }
+
+          sendPendingLap() {
+            if (this.isHub || !this.pendingLap || !this.hubConnection?.open) return false;
+            try {
+              this.hubConnection.send({ type: 'lap-submit', seconds: this.pendingLap.seconds });
+              this.pendingLap = null;
+              return true;
+            } catch (error) {
+              console.warn('Global leaderboard lap is queued for retry:', error);
+              return false;
+            }
+          }
+
+          broadcastLeaderboard() {"""
+          presence = once(presence, old, new, 'lap submission retry')
+          presence_path.write_text(presence)
+
+          test_path = Path('apex-gp/tests/race-math.test.mjs')
+          tests = test_path.read_text()
+          tests = once(tests, '  calculateTyreWearRate\\n', '  calculateTyreWearRate,\\n  collisionSpeedAfterContact\\n', 'test import')
+          tests += "\\nassert.equal(collisionSpeedAfterContact(50), 46.65, 'AI should lose speed only when a collision is actually resolved');\\nassert.equal(collisionSpeedAfterContact(0), 0, 'collision response must not create reverse or launch impulses');\\n"
+          test_path.write_text(tests)
+          PY
           grep -q "bot.gridLane" apex-gp/src/main.js
           grep -q "current track frame" apex-gp/src/main.js
           echo "Collision response, safe launch lanes, and local contact resolution applied"
@@ -308,7 +392,6 @@ jobs:
           rm -rf .drive-ai-patch /tmp/drive-ai.patch.gz /tmp/drive-ai.patch
           rm -rf .collision-physics-patch /tmp/collision-physics.patch.gz /tmp/collision-physics.patch
           rm -rf .launch-traffic-patch /tmp/launch-traffic.patch.gz /tmp/launch-traffic.patch
-          rm -rf .ai-speed-leaderboard-patch /tmp/ai-speed-leaderboard.patch.gz /tmp/ai-speed-leaderboard.patch
           rm -rf .bayside-autumn-theme-patch /tmp/bayside-autumn-theme.patch.gz /tmp/bayside-autumn-theme.patch
           rm -rf .bayside-wave-fill-fix /tmp/bayside-wave-fill-fix.patch.gz /tmp/bayside-wave-fill-fix.patch
           rm -f Apex-GP.zip
