@@ -379,6 +379,13 @@ jobs:
           grep -q "function barrierOffsetAt" apex-gp/src/track.js
           ! grep -q "barrierIsInsideTightTurn" apex-gp/src/track.js
           echo "Lower chase camera, continuous barriers, and responsive steering/braking applied"
+          cat .smooth-driving-owner-wave/*.b64 | tr -d '\r\n' | base64 --decode > /tmp/smooth-driving-owner-wave.patch.gz
+          echo "99473906805d4f67e9d4bfb08d0a3de205ffa69ce3348dbd81f890261aada973  /tmp/smooth-driving-owner-wave.patch.gz" | sha256sum --check
+          gzip -d /tmp/smooth-driving-owner-wave.patch.gz
+          patch --batch --forward -p1 < /tmp/smooth-driving-owner-wave.patch
+          grep -q "owner-name-wave" apex-gp/src/style.css
+          grep -q "const shiftCut = carState.gearShiftTimer > 0 ? .72 : 1" apex-gp/src/main.js
+          echo "Smooth vehicle response and continuous owner name gradient applied"
           grep -q "current track frame" apex-gp/src/main.js
           echo "Collision response, safe launch lanes, and local contact resolution applied"
           for file in apex-gp/src/*.js apex-gp/src/*.mjs apex-gp/tests/*.mjs; do node --check "$file"; done
@@ -390,6 +397,7 @@ jobs:
           rm -rf .collision-physics-patch /tmp/collision-physics.patch.gz /tmp/collision-physics.patch
           rm -rf .launch-traffic-patch /tmp/launch-traffic.patch.gz /tmp/launch-traffic.patch
           rm -rf .camera-barrier-driving-patch /tmp/camera-barrier-driving.patch.gz /tmp/camera-barrier-driving.patch
+          rm -rf .smooth-driving-owner-wave /tmp/smooth-driving-owner-wave.patch.gz /tmp/smooth-driving-owner-wave.patch
           rm -rf .bayside-autumn-theme-patch /tmp/bayside-autumn-theme.patch.gz /tmp/bayside-autumn-theme.patch
           rm -rf .bayside-wave-fill-fix /tmp/bayside-wave-fill-fix.patch.gz /tmp/bayside-wave-fill-fix.patch
           rm -f Apex-GP.zip
