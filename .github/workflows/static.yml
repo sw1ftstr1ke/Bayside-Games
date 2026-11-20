@@ -370,6 +370,15 @@ jobs:
           grep -q "new SupabaseLeaderboard" apex-gp/src/main.js
           grep -q "submit_apex_gp_lap" apex-gp/src/supabase-leaderboard.js
           echo "Persistent Supabase leaderboard integration applied"
+          cat .camera-barrier-driving-patch/*.b64 | tr -d '\\r\\n' | base64 --decode > /tmp/camera-barrier-driving.patch.gz
+          echo "72458fdc292d1d941427775d0170dfe2e806b6c0c053face7a4115aff5548587  /tmp/camera-barrier-driving.patch.gz" | sha256sum --check
+          gzip -d /tmp/camera-barrier-driving.patch.gz
+          patch --batch --forward -p1 < /tmp/camera-barrier-driving.patch
+          grep -q "const followDistance = 10.8" apex-gp/src/main.js
+          grep -q "const brakeForce = brake \* 52000" apex-gp/src/main.js
+          grep -q "function barrierOffsetAt" apex-gp/src/track.js
+          ! grep -q "barrierIsInsideTightTurn" apex-gp/src/track.js
+          echo "Lower chase camera, continuous barriers, and responsive steering/braking applied"
           grep -q "current track frame" apex-gp/src/main.js
           echo "Collision response, safe launch lanes, and local contact resolution applied"
           for file in apex-gp/src/*.js apex-gp/src/*.mjs apex-gp/tests/*.mjs; do node --check "$file"; done
@@ -380,6 +389,7 @@ jobs:
           rm -rf .drive-ai-patch /tmp/drive-ai.patch.gz /tmp/drive-ai.patch
           rm -rf .collision-physics-patch /tmp/collision-physics.patch.gz /tmp/collision-physics.patch
           rm -rf .launch-traffic-patch /tmp/launch-traffic.patch.gz /tmp/launch-traffic.patch
+          rm -rf .camera-barrier-driving-patch /tmp/camera-barrier-driving.patch.gz /tmp/camera-barrier-driving.patch
           rm -rf .bayside-autumn-theme-patch /tmp/bayside-autumn-theme.patch.gz /tmp/bayside-autumn-theme.patch
           rm -rf .bayside-wave-fill-fix /tmp/bayside-wave-fill-fix.patch.gz /tmp/bayside-wave-fill-fix.patch
           rm -f Apex-GP.zip
