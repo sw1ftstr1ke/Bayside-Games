@@ -285,12 +285,17 @@ jobs:
           echo "588ca7f5e4fa9bc09f40cacfb74dadf4a7f0ca11bfcb09c2c7a557ce9cda949d  /tmp/drive-ai.patch.gz" | sha256sum --check
           gzip -d /tmp/drive-ai.patch.gz
           patch --batch --forward -p1 < /tmp/drive-ai.patch
+          cat .collision-physics-patch/*.b64 | tr -d '\r\n' | base64 --decode > /tmp/collision-physics.patch.gz
+          echo "e51aa55e6f464b31b65a01b5794567ddd3ba01b851f65a340b2729e3d7b8a22e  /tmp/collision-physics.patch.gz" | sha256sum --check
+          gzip -d /tmp/collision-physics.patch.gz
+          patch --batch --forward -p1 < /tmp/collision-physics.patch
           for file in apex-gp/src/*.js apex-gp/src/*.mjs apex-gp/tests/*.mjs; do node --check "$file"; done
           node apex-gp/tests/race-math.test.mjs
           node apex-gp/tests/room-network.test.mjs
           rm -f apex-gp/src/main.js.orig apex-gp/src/main.js.rej
           rm -rf .room-owner-grid-patch /tmp/room-owner-grid.patch.gz /tmp/room-owner-grid.patch
           rm -rf .drive-ai-patch /tmp/drive-ai.patch.gz /tmp/drive-ai.patch
+          rm -rf .collision-physics-patch /tmp/collision-physics.patch.gz /tmp/collision-physics.patch
           rm -rf .bayside-autumn-theme-patch /tmp/bayside-autumn-theme.patch.gz /tmp/bayside-autumn-theme.patch
           rm -rf .bayside-wave-fill-fix /tmp/bayside-wave-fill-fix.patch.gz /tmp/bayside-wave-fill-fix.patch
           rm -f Apex-GP.zip
