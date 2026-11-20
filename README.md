@@ -12,3 +12,14 @@ The GitHub Actions workflow in `.github/workflows/static.yml` rebuilds Apex GP a
 The hidden, numbered `.b64` directories are **active build inputs**, not disposable clutter. They contain the compressed game archive and ordered patches used by the workflow. Keep them in place unless the workflow is updated at the same time.
 
 Superseded patch backups and generated ZIP files are not stored in the repository. The workflow recreates `Apex-GP.zip` during its build.
+
+## Persistent Apex GP leaderboard
+
+The global lap board is backed by Supabase Postgres and Supabase Realtime. To enable it on the Supabase project configured in `apex-gp/src/supabase-config.js`, run the migration once:
+
+1. Open the Supabase project dashboard.
+2. Open **SQL Editor** and create a new query.
+3. Copy and run `supabase/migrations/20261120000000_apex_gp_leaderboard.sql`.
+4. Reload Apex GP. The leaderboard should show **LIVE ONLINE SYNC**.
+
+The migration creates a public read-only leaderboard table and a validated database function for submitting a driver's improved best lap. The browser uses only the Supabase publishable key; it does not contain a service-role key. Realtime broadcasts database changes to connected game clients, and the database retains results when every player closes the game.

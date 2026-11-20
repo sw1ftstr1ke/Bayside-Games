@@ -307,6 +307,80 @@ jobs:
           PY
           grep -q "Position correction only" apex-gp/src/main.js
           grep -q "bot.gridLane" apex-gp/src/main.js
+          cp .overlay-files/supabase-leaderboard.js apex-gp/src/supabase-leaderboard.js
+          python3 - <<'PY'
+          from pathlib import Path
+
+          def replace_once(source, old, new, label):
+              count = source.count(old)
+              if count != 1:
+                  raise SystemExit(f"{label}: expected one match, found {count}")
+              return source.replace(old, new, 1)
+
+          path = Path('apex-gp/src/main.js')
+          source = path.read_text()
+          source = replace_once(source,
+              "import { SupabasePresence } from './supabase-presence.js';",
+              "import { SupabasePresence } from './supabase-presence.js';\nimport { SupabaseLeaderboard } from './supabase-leaderboard.js';",
+              'Supabase leaderboard import')
+          source = replace_once(source,
+              "let supabasePresence = null;",
+              "let supabasePresence = null;\nlet supabaseLeaderboard = null;",
+              'Supabase leaderboard instance')
+          source = replace_once(source,
+              "  globalPresence?.updateProfile({ name });\n  supabasePresence?.updateProfile({ name });",
+              "  globalPresence?.updateProfile({ name });\n  supabasePresence?.updateProfile({ name });\n  supabaseLeaderboard?.updateProfile({ name });",
+              'leaderboard display name updates')
+          source = replace_once(source,
+              "      const isGlobalBest = !wasCut && !!globalPresence?.recordLap(lap);",
+              "      if (!wasCut) supabaseLeaderboard?.recordLap(lap).then(isGlobalBest => { if (isGlobalBest) toast('GLOBAL BEST · ' + formatTime(lap)); });\n      const isGlobalBest = false;",
+              'persistent lap submission')
+          old_callback = """    leaderboard: entries => {
+      globalLeaderboard = Array.isArray(entries) ? entries : [];
+      renderGlobalLeaderboard();
+    },
+    status: status => {
+      leaderboardSyncStatus = status || 'CONNECTING';
+      // PeerJS remains responsible for lap-board relay only. When Supabase is
+      // configured, its independent status drives the online-player panel.
+      if (!useSupabasePresence) globalPresenceStatus = leaderboardSyncStatus;
+      renderOnlinePlayers();
+      renderGlobalLeaderboard();
+    },"""
+          new_callback = """    status: status => {
+            if (!useSupabasePresence) globalPresenceStatus = status || 'CONNECTING';
+            renderOnlinePlayers();
+          },"""
+          source = replace_once(source, old_callback, new_callback, 'remove PeerJS leaderboard callbacks')
+          source = replace_once(source,
+              "  globalPresence.start(profile);\n  if (supabasePresence) supabasePresence.start(profile);",
+              """  globalPresence.start(profile);
+          if (supabasePresence) supabasePresence.start(profile);
+          supabaseLeaderboard = new SupabaseLeaderboard({
+            leaderboard: entries => {
+              globalLeaderboard = Array.isArray(entries) ? entries : [];
+              renderGlobalLeaderboard();
+            },
+            status: status => {
+              leaderboardSyncStatus = status || 'CONNECTING';
+              renderGlobalLeaderboard();
+            }
+          });
+          supabaseLeaderboard.start(profile);""",
+              'start persistent leaderboard')
+          lines = source.splitlines()
+          index = next((i for i, line in enumerate(lines) if 'leaderboard-empty' in line and 'CONNECTING TO THE GLOBAL TIMING BOARD' in line), -1)
+          if index < 0:
+              raise SystemExit('leaderboard empty-state line not found')
+          lines[index:index + 1] = [
+              "    const emptyMessage = leaderboardSyncStatus === 'SETUP_REQUIRED' ? 'DATABASE SETUP REQUIRED — RUN THE SUPABASE LEADERBOARD MIGRATION.' : online ? 'NO CLEAN LAPS YET — SET THE FIRST BENCHMARK.' : 'CONNECTING TO THE GLOBAL TIMING BOARD…';",
+              "    body.innerHTML = '<tr><td colspan=\"4\" class=\"leaderboard-empty\">' + emptyMessage + '</td></tr>';"
+          ]
+          path.write_text('\n'.join(lines) + '\n')
+          PY
+          grep -q "new SupabaseLeaderboard" apex-gp/src/main.js
+          grep -q "submit_apex_gp_lap" apex-gp/src/supabase-leaderboard.js
+          echo "Persistent Supabase leaderboard integration applied"
           grep -q "current track frame" apex-gp/src/main.js
           echo "Collision response, safe launch lanes, and local contact resolution applied"
           for file in apex-gp/src/*.js apex-gp/src/*.mjs apex-gp/tests/*.mjs; do node --check "$file"; done
