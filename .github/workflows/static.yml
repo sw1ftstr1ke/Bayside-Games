@@ -386,6 +386,42 @@ jobs:
           grep -q "owner-name-wave" apex-gp/src/style.css
           grep -q "const shiftCut = carState.gearShiftTimer > 0 ? .72 : 1" apex-gp/src/main.js
           echo "Smooth vehicle response and continuous owner name gradient applied"
+          cat .apex-rally-bundle/*.b64 | tr -d '\r\n' | base64 --decode > /tmp/apex-rally-bundle.tar.gz
+          echo "56dfe9a628587507e7b0c9639f18f51d980f41758ce23ab718259e64300f7caf  /tmp/apex-rally-bundle.tar.gz" | sha256sum --check
+          tar -xzf /tmp/apex-rally-bundle.tar.gz -C .
+          test -f apex-rally/index.html
+          test -f apex-rally/src/rally.js
+          python3 - <<'PY'
+          from pathlib import Path
+          page = Path("apex-gp/index.html")
+          html = page.read_text()
+          old = """        <article class="home-game-card coming-soon" aria-disabled="true">
+                    <span class="game-art rally-art"><span class="art-mountain"></span><span class="art-number">02</span><span class="art-stamp">COMING<br>SOON</span></span>
+                    <span class="game-card-copy"><span class="game-kicker">OFF-ROAD · TIME TRIAL</span><b>APEX RALLY</b><span class="game-description">Find grip on changing surfaces and master the stages.</span><span class="game-play muted-play">COMING SOON</span></span>
+                  </article>"""
+          new = """        <a class="home-game-card rally-live" href="../apex-rally/" aria-label="Play Apex Rally">
+            <span class="game-art rally-art"><span class="art-mountain"></span><span class="art-number">02</span><span class="art-stamp rally-stamp">READY<br>TO RACE</span></span>
+            <span class="game-card-copy"><span class="game-kicker">RALLY SIMULATOR · FOREST STAGE</span><b>APEX RALLY</b><span class="game-description">Attack the Black Pine Run, slide through gravel corners and chase your best stage time.</span><span class="game-play">PLAY GAME <i>↗</i></span></span>
+          </a>"""
+          # Allow source indentation changes while requiring exactly one matching card.
+          import re
+          pattern = r'<article class="home-game-card coming-soon" aria-disabled="true">\s*<span class="game-art rally-art">.*?</article>'
+          html, count = re.subn(pattern, lambda _: new, html, count=1, flags=re.S)
+          if count != 1:
+              raise SystemExit(f"Expected one Apex Rally placeholder, found {count}")
+          page.write_text(html)
+          css = Path("apex-gp/src/style.css")
+          c = css.read_text()
+          c += "\n.home-game-card.rally-live{border-color:rgba(187,205,127,.35);background:linear-gradient(145deg,rgba(48,62,44,.92),rgba(22,35,28,.96))}.home-game-card.rally-live:hover{border-color:rgba(219,143,79,.75);transform:translateY(-5px)}.home-game-card.rally-live .game-play{color:#e5a05f}.home-game-card.rally-live .rally-stamp{background:rgba(27,38,29,.9);color:#dce8bf}\n"
+          css.write_text(c)
+          p = Path("apex-rally/index.html")
+          p.write_text(p.read_text().replace("0.0 / 3.2 KM", "0.0 / 3.4 KM"))
+          PY
+          grep -q 'href="../apex-rally/"' apex-gp/index.html
+          grep -q 'home-game-card.rally-live' apex-gp/src/style.css
+          grep -q '0.0 / 3.4 KM' apex-rally/index.html
+          node --check apex-rally/src/rally.js
+          echo "Apex Rally stage and Games library card integrated"
           cat .owner-rank-wave-patch/*.b64 | tr -d '\r\n' | base64 --decode > /tmp/owner-rank-wave.patch.gz
           echo "6285fd209ee75ddb54b11a4a4feda742a376653c4eca41c302b24589925a8561  /tmp/owner-rank-wave.patch.gz" | sha256sum --check
           gzip -d /tmp/owner-rank-wave.patch.gz
@@ -405,6 +441,7 @@ jobs:
           rm -rf .launch-traffic-patch /tmp/launch-traffic.patch.gz /tmp/launch-traffic.patch
           rm -rf .camera-barrier-driving-patch /tmp/camera-barrier-driving.patch.gz /tmp/camera-barrier-driving.patch
           rm -rf .smooth-driving-owner-wave /tmp/smooth-driving-owner-wave.patch.gz /tmp/smooth-driving-owner-wave.patch
+          rm -rf .apex-rally-bundle /tmp/apex-rally-bundle.tar.gz
           rm -rf .owner-rank-wave-patch /tmp/owner-rank-wave.patch.gz /tmp/owner-rank-wave.patch
           rm -rf .bayside-autumn-theme-patch /tmp/bayside-autumn-theme.patch.gz /tmp/bayside-autumn-theme.patch
           rm -rf .bayside-wave-fill-fix /tmp/bayside-wave-fill-fix.patch.gz /tmp/bayside-wave-fill-fix.patch
