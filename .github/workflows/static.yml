@@ -406,6 +406,13 @@ jobs:
           grep -q "cameraRightFromForward" apex-rally/src/rally.js
           grep -q "steeringAngleForRally(state.steer, maxWheelAngle)" apex-rally/src/rally.js
           echo "Apex Rally keyboard, touch, steering and gameplay controls verified"
+          cat .apex-rally-runtime-fix/*.b64 | tr -d '\r\n' | base64 --decode > /tmp/apex-rally-runtime-fix.patch.gz
+          echo "242f22572742e38baae50ec69e46a1211dc53b22e36c9e1e4097227b69e68d9e  /tmp/apex-rally-runtime-fix.patch.gz" | sha256sum --check
+          gzip -d /tmp/apex-rally-runtime-fix.patch.gz
+          patch --batch --forward -p1 < /tmp/apex-rally-runtime-fix.patch
+          node --check apex-rally/src/rally.js
+          grep -q "const lateralGrip = controls.handbrake" apex-rally/src/rally.js
+          echo "Apex Rally runtime handbrake variable resolved"
           test -f apex-rally/index.html
           test -f apex-rally/src/rally.js
           python3 - <<'PY'
@@ -463,6 +470,7 @@ jobs:
           rm -rf .camera-barrier-driving-patch /tmp/camera-barrier-driving.patch.gz /tmp/camera-barrier-driving.patch
           rm -rf .smooth-driving-owner-wave /tmp/smooth-driving-owner-wave.patch.gz /tmp/smooth-driving-owner-wave.patch
           rm -rf .apex-rally-bundle /tmp/apex-rally-bundle.tar.gz
+          rm -rf .apex-rally-runtime-fix /tmp/apex-rally-runtime-fix.patch.gz /tmp/apex-rally-runtime-fix.patch
           rm -rf .apex-rally-controls-fix /tmp/apex-rally-controls.patch.gz /tmp/apex-rally-controls.patch
           rm -rf .owner-rank-wave-patch /tmp/owner-rank-wave.patch.gz /tmp/owner-rank-wave.patch
           rm -rf .bayside-autumn-theme-patch /tmp/bayside-autumn-theme.patch.gz /tmp/bayside-autumn-theme.patch
