@@ -414,6 +414,17 @@ jobs:
           c = css.read_text()
           c += "\n.home-game-card.rally-live{border-color:rgba(187,205,127,.35);background:linear-gradient(145deg,rgba(48,62,44,.92),rgba(22,35,28,.96))}.home-game-card.rally-live:hover{border-color:rgba(219,143,79,.75);transform:translateY(-5px)}.home-game-card.rally-live .game-play{color:#e5a05f}.home-game-card.rally-live .rally-stamp{background:rgba(27,38,29,.9);color:#dce8bf}\n"
           css.write_text(c)
+          root_css = Path("assets/site.css")
+          root_styles = root_css.read_text()
+          root_styles += """
+          /* Apex Rally — companion title */
+          .feature-strip.rally-feature-strip{margin:-48px auto 70px;border-color:rgba(190,207,139,.24);background:linear-gradient(110deg,rgba(35,58,43,.97),rgba(14,29,24,.97));box-shadow:0 20px 45px rgba(0,0,0,.28)}
+          .rally-feature-strip .feature-copy small{color:#c4d78b}
+          .rally-feature-strip .button-primary{background:#d98348;color:#141a14;box-shadow:0 10px 30px rgba(217,131,72,.18)}
+          .rally-feature-strip .button-primary:hover{background:#ee9959}
+          @media(max-width:760px){.feature-strip.rally-feature-strip{margin:-27px 16px 45px}}
+          """
+          root_css.write_text(root_styles)
           p = Path("apex-rally/index.html")
           p.write_text(p.read_text().replace("0.0 / 3.2 KM", "0.0 / 3.4 KM"))
           PY
