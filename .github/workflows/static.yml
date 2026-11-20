@@ -289,6 +289,7 @@ jobs:
           echo "e51aa55e6f464b31b65a01b5794567ddd3ba01b851f65a340b2729e3d7b8a22e  /tmp/collision-physics.patch.gz" | sha256sum --check
           gzip -d /tmp/collision-physics.patch.gz
           patch --batch --forward -p1 < /tmp/collision-physics.patch
+          echo "Collision response and AI launch-lane patch applied"
           for file in apex-gp/src/*.js apex-gp/src/*.mjs apex-gp/tests/*.mjs; do node --check "$file"; done
           node apex-gp/tests/race-math.test.mjs
           node apex-gp/tests/room-network.test.mjs
