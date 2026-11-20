@@ -6,7 +6,7 @@ const CHANNEL = 'apex-gp-global-leaderboard-v1';
 const MAX_ENTRIES = 40;
 
 function cleanName(value) {
-  return String(value || 'RACER').replace(/[<>\\u0000-\\u001f]/g, '').trim().slice(0, 18) || 'RACER';
+  return String(value || 'RACER').replace(/[<>\u0000-\u001f]/g, '').trim().slice(0, 18) || 'RACER';
 }
 function cleanDriverId(value) {
   const id = String(value || '').replace(/[^a-zA-Z0-9_-]/g, '').slice(0, 80);
