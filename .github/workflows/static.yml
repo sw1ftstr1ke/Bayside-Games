@@ -380,7 +380,7 @@ jobs:
               tests += "\nassert.equal(collisionSpeedAfterContact(50), 46.65, 'AI should lose speed only when a collision is actually resolved');\nassert.equal(collisionSpeedAfterContact(0), 0, 'collision response must not create reverse or launch impulses');\n"
           test_path.write_text(tests)
           PY
- apex-gp/src/main.js
+          grep -q "bot.gridLane" apex-gp/src/main.js
           grep -q "current track frame" apex-gp/src/main.js
           echo "Collision response, safe launch lanes, and local contact resolution applied"
           for file in apex-gp/src/*.js apex-gp/src/*.mjs apex-gp/tests/*.mjs; do node --check "$file"; done
