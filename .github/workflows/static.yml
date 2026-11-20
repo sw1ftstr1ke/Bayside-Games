@@ -289,6 +289,12 @@ jobs:
           echo "e51aa55e6f464b31b65a01b5794567ddd3ba01b851f65a340b2729e3d7b8a22e  /tmp/collision-physics.patch.gz" | sha256sum --check
           gzip -d /tmp/collision-physics.patch.gz
           patch --batch --forward -p1 < /tmp/collision-physics.patch
+          cat .launch-traffic-patch/*.b64 | tr -d '\r\n' | base64 --decode > /tmp/launch-traffic.patch.gz
+          echo "7b51ce6ba1c1a965453043bd70bef9e420959274d2ee543a0e3c085a0f50c9dc  /tmp/launch-traffic.patch.gz" | sha256sum --check
+          gzip -d /tmp/launch-traffic.patch.gz
+          patch --batch --forward -p1 < /tmp/launch-traffic.patch
+          grep -q "bot.gridLane" apex-gp/src/main.js
+          grep -q "local track frame" apex-gp/src/main.js
           echo "Collision response and AI launch-lane patch applied"
           for file in apex-gp/src/*.js apex-gp/src/*.mjs apex-gp/tests/*.mjs; do node --check "$file"; done
           node apex-gp/tests/race-math.test.mjs
@@ -297,6 +303,7 @@ jobs:
           rm -rf .room-owner-grid-patch /tmp/room-owner-grid.patch.gz /tmp/room-owner-grid.patch
           rm -rf .drive-ai-patch /tmp/drive-ai.patch.gz /tmp/drive-ai.patch
           rm -rf .collision-physics-patch /tmp/collision-physics.patch.gz /tmp/collision-physics.patch
+          rm -rf .launch-traffic-patch /tmp/launch-traffic.patch.gz /tmp/launch-traffic.patch
           rm -rf .bayside-autumn-theme-patch /tmp/bayside-autumn-theme.patch.gz /tmp/bayside-autumn-theme.patch
           rm -rf .bayside-wave-fill-fix /tmp/bayside-wave-fill-fix.patch.gz /tmp/bayside-wave-fill-fix.patch
           rm -f Apex-GP.zip
