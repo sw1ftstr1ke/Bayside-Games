@@ -294,7 +294,7 @@ jobs:
           gzip -d /tmp/launch-traffic.patch.gz
           patch --batch --forward -p1 < /tmp/launch-traffic.patch
           grep -q "bot.gridLane" apex-gp/src/main.js
-          grep -q "local track frame" apex-gp/src/main.js
+          grep -q "current track frame" apex-gp/src/main.js
           echo "Collision response and AI launch-lane patch applied"
           for file in apex-gp/src/*.js apex-gp/src/*.mjs apex-gp/tests/*.mjs; do node --check "$file"; done
           node apex-gp/tests/race-math.test.mjs
