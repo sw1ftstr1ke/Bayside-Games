@@ -370,7 +370,7 @@ jobs:
           grep -q "new SupabaseLeaderboard" apex-gp/src/main.js
           grep -q "submit_apex_gp_lap" apex-gp/src/supabase-leaderboard.js
           echo "Persistent Supabase leaderboard integration applied"
-          cat .camera-barrier-driving-patch/*.b64 | tr -d '\\r\\n' | base64 --decode > /tmp/camera-barrier-driving.patch.gz
+          cat .camera-barrier-driving-patch/*.b64 | tr -d '\r\n' | base64 --decode > /tmp/camera-barrier-driving.patch.gz
           echo "72458fdc292d1d941427775d0170dfe2e806b6c0c053face7a4115aff5548587  /tmp/camera-barrier-driving.patch.gz" | sha256sum --check
           gzip -d /tmp/camera-barrier-driving.patch.gz
           patch --batch --forward -p1 < /tmp/camera-barrier-driving.patch
