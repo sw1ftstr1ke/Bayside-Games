@@ -386,6 +386,13 @@ jobs:
           grep -q "owner-name-wave" apex-gp/src/style.css
           grep -q "const shiftCut = carState.gearShiftTimer > 0 ? .72 : 1" apex-gp/src/main.js
           echo "Smooth vehicle response and continuous owner name gradient applied"
+          cat .owner-rank-wave-patch/*.b64 | tr -d '\r\n' | base64 --decode > /tmp/owner-rank-wave.patch.gz
+          echo "6285fd209ee75ddb54b11a4a4feda742a376653c4eca41c302b24589925a8561  /tmp/owner-rank-wave.patch.gz" | sha256sum --check
+          gzip -d /tmp/owner-rank-wave.patch.gz
+          patch --batch --forward -p1 < /tmp/owner-rank-wave.patch
+          grep -q "BAYSIDE GAMES OWNER · RANK #1" apex-gp/src/main.js
+          grep -q "repeating-linear-gradient(105deg" apex-gp/src/style.css
+          echo "Seamless owner gradient and shared owner rank applied"
           grep -q "current track frame" apex-gp/src/main.js
           echo "Collision response, safe launch lanes, and local contact resolution applied"
           for file in apex-gp/src/*.js apex-gp/src/*.mjs apex-gp/tests/*.mjs; do node --check "$file"; done
@@ -398,6 +405,7 @@ jobs:
           rm -rf .launch-traffic-patch /tmp/launch-traffic.patch.gz /tmp/launch-traffic.patch
           rm -rf .camera-barrier-driving-patch /tmp/camera-barrier-driving.patch.gz /tmp/camera-barrier-driving.patch
           rm -rf .smooth-driving-owner-wave /tmp/smooth-driving-owner-wave.patch.gz /tmp/smooth-driving-owner-wave.patch
+          rm -rf .owner-rank-wave-patch /tmp/owner-rank-wave.patch.gz /tmp/owner-rank-wave.patch
           rm -rf .bayside-autumn-theme-patch /tmp/bayside-autumn-theme.patch.gz /tmp/bayside-autumn-theme.patch
           rm -rf .bayside-wave-fill-fix /tmp/bayside-wave-fill-fix.patch.gz /tmp/bayside-wave-fill-fix.patch
           rm -f Apex-GP.zip
