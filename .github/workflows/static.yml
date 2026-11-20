@@ -396,6 +396,16 @@ jobs:
           cat .apex-rally-bundle/*.b64 | tr -d '\r\n' | base64 --decode > /tmp/apex-rally-bundle.tar.gz
           echo "56dfe9a628587507e7b0c9639f18f51d980f41758ce23ab718259e64300f7caf  /tmp/apex-rally-bundle.tar.gz" | sha256sum --check
           tar -xzf /tmp/apex-rally-bundle.tar.gz -C .
+          cat .apex-rally-controls-fix/*.b64 | tr -d '\r\n' | base64 --decode > /tmp/apex-rally-controls.patch.gz
+          echo "f63b4793eb59ddb8417ff1d1505a54bc0efcf99ef83269d17dc821b0591b1b82  /tmp/apex-rally-controls.patch.gz" | sha256sum --check
+          gzip -d /tmp/apex-rally-controls.patch.gz
+          patch --batch --forward -p1 < /tmp/apex-rally-controls.patch
+          node --check apex-rally/src/rally.js
+          node --check apex-rally/src/controls.mjs
+          node .apex-rally-controls-fix/rally-controls.test.mjs
+          grep -q "cameraRightFromForward" apex-rally/src/rally.js
+          grep -q "steeringAngleForRally(state.steer, maxWheelAngle)" apex-rally/src/rally.js
+          echo "Apex Rally keyboard, touch, steering and gameplay controls verified"
           test -f apex-rally/index.html
           test -f apex-rally/src/rally.js
           python3 - <<'PY'
@@ -453,6 +463,7 @@ jobs:
           rm -rf .camera-barrier-driving-patch /tmp/camera-barrier-driving.patch.gz /tmp/camera-barrier-driving.patch
           rm -rf .smooth-driving-owner-wave /tmp/smooth-driving-owner-wave.patch.gz /tmp/smooth-driving-owner-wave.patch
           rm -rf .apex-rally-bundle /tmp/apex-rally-bundle.tar.gz
+          rm -rf .apex-rally-controls-fix /tmp/apex-rally-controls.patch.gz /tmp/apex-rally-controls.patch
           rm -rf .owner-rank-wave-patch /tmp/owner-rank-wave.patch.gz /tmp/owner-rank-wave.patch
           rm -rf .bayside-autumn-theme-patch /tmp/bayside-autumn-theme.patch.gz /tmp/bayside-autumn-theme.patch
           rm -rf .bayside-wave-fill-fix /tmp/bayside-wave-fill-fix.patch.gz /tmp/bayside-wave-fill-fix.patch
