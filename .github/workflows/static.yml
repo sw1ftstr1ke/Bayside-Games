@@ -293,6 +293,10 @@ jobs:
           echo "7b51ce6ba1c1a965453043bd70bef9e420959274d2ee543a0e3c085a0f50c9dc  /tmp/launch-traffic.patch.gz" | sha256sum --check
           gzip -d /tmp/launch-traffic.patch.gz
           patch --batch --forward -p1 < /tmp/launch-traffic.patch
+          cat .ai-speed-leaderboard-patch/*.b64 | tr -d '\r\n' | base64 --decode > /tmp/ai-speed-leaderboard.patch.gz
+          echo "5d23d02192dd6b5c75286ce30f3e6bd919faadcdbbbe0e811ac7dec9510a165e  /tmp/ai-speed-leaderboard.patch.gz" | sha256sum --check
+          gzip -d /tmp/ai-speed-leaderboard.patch.gz
+          patch --batch --forward -p1 < /tmp/ai-speed-leaderboard.patch
           grep -q "bot.gridLane" apex-gp/src/main.js
           grep -q "current track frame" apex-gp/src/main.js
           echo "Collision response, safe launch lanes, and local contact resolution applied"
@@ -304,6 +308,7 @@ jobs:
           rm -rf .drive-ai-patch /tmp/drive-ai.patch.gz /tmp/drive-ai.patch
           rm -rf .collision-physics-patch /tmp/collision-physics.patch.gz /tmp/collision-physics.patch
           rm -rf .launch-traffic-patch /tmp/launch-traffic.patch.gz /tmp/launch-traffic.patch
+          rm -rf .ai-speed-leaderboard-patch /tmp/ai-speed-leaderboard.patch.gz /tmp/ai-speed-leaderboard.patch
           rm -rf .bayside-autumn-theme-patch /tmp/bayside-autumn-theme.patch.gz /tmp/bayside-autumn-theme.patch
           rm -rf .bayside-wave-fill-fix /tmp/bayside-wave-fill-fix.patch.gz /tmp/bayside-wave-fill-fix.patch
           rm -f Apex-GP.zip
