@@ -337,15 +337,15 @@ jobs:
           presence = once(presence, "    if (!this.hubConnection?.open) {\\n      this.connectToHub();\\n      return;\\n    }",
               "    if (!this.hubConnection?.open) {\\n      this.connectToHub();\\n      return;\\n    }\\n    this.sendPendingLap();", 'retry queued lap on heartbeat')
           old = """    const improved = this.mergeLeaderboard([record], false);
-            if (this.isHub) {
-              if (improved) this.broadcastLeaderboard();
-            } else if (this.hubConnection?.open) {
-              this.hubConnection.send({ type: 'lap-submit', seconds: record.seconds });
+              if (this.isHub) {
+                if (improved) this.broadcastLeaderboard();
+              } else if (this.hubConnection?.open) {
+                this.hubConnection.send({ type: 'lap-submit', seconds: record.seconds });
+              }
+              return improved;
             }
-            return improved;
-          }
 
-          broadcastLeaderboard() {"""
+            broadcastLeaderboard() {"""
           new = """    const improved = this.mergeLeaderboard([record], false);
             if (improved) {
               this.pendingLap = record;
