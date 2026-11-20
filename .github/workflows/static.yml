@@ -335,23 +335,12 @@ jobs:
               "      const isGlobalBest = !wasCut && !!globalPresence?.recordLap(lap);",
               "      if (!wasCut) supabaseLeaderboard?.recordLap(lap).then(isGlobalBest => { if (isGlobalBest) toast('GLOBAL BEST · ' + formatTime(lap)); });\n      const isGlobalBest = false;",
               'persistent lap submission')
-          old_callback = """    leaderboard: entries => {
-      globalLeaderboard = Array.isArray(entries) ? entries : [];
-      renderGlobalLeaderboard();
-    },
-    status: status => {
-      leaderboardSyncStatus = status || 'CONNECTING';
-      // PeerJS remains responsible for lap-board relay only. When Supabase is
-      // configured, its independent status drives the online-player panel.
-      if (!useSupabasePresence) globalPresenceStatus = leaderboardSyncStatus;
-      renderOnlinePlayers();
-      renderGlobalLeaderboard();
-    },"""
-          new_callback = """    status: status => {
-            if (!useSupabasePresence) globalPresenceStatus = status || 'CONNECTING';
-            renderOnlinePlayers();
-          },"""
-          source = replace_once(source, old_callback, new_callback, 'remove PeerJS leaderboard callbacks')
+          import re
+          callback_pattern = r"    leaderboard: entries => \{\n      globalLeaderboard = Array\.isArray\(entries\) \? entries : \[\];\n      renderGlobalLeaderboard\(\);\n    \},\n    status: status => \{\n      leaderboardSyncStatus = status \|\| 'CONNECTING';\n      // PeerJS remains responsible for lap-board relay only\. When Supabase is\n      // configured, its independent status drives the online-player panel\.\n      if \(!useSupabasePresence\) globalPresenceStatus = leaderboardSyncStatus;\n      renderOnlinePlayers\(\);\n      renderGlobalLeaderboard\(\);\n    \},"
+          callback_replacement = "    status: status => {\n      if (!useSupabasePresence) globalPresenceStatus = status || 'CONNECTING';\n      renderOnlinePlayers();\n    },"
+          source, callback_count = re.subn(callback_pattern, lambda _: callback_replacement, source, count=1)
+          if callback_count != 1:
+              raise SystemExit(f"remove PeerJS leaderboard callbacks: expected one match, found {callback_count}")
           source = replace_once(source,
               "  globalPresence.start(profile);\n  if (supabasePresence) supabasePresence.start(profile);",
               """  globalPresence.start(profile);
