@@ -23,3 +23,9 @@ The global lap board is backed by Supabase Postgres and Supabase Realtime. To en
 4. Reload Apex GP. The leaderboard should show **LIVE ONLINE SYNC**.
 
 The migration creates a public read-only leaderboard table and a validated database function for submitting a driver's improved best lap. The browser uses only the Supabase publishable key; it does not contain a service-role key. Realtime broadcasts database changes to connected game clients, and the database retains results when every player closes the game.
+
+## Apex Rally
+
+Apex Rally is a standalone, single-stage rally time trial on the 3.4 km Black Pine Run forest stage. It reuses the Apex GP race-math helpers for input, steering, braking, and camera logic while using its own gravel-stage terrain, vehicle presentation, stage timer, splits, and personal-best storage. Open `/apex-rally/` from the Games library.
+
+Controls: WASD or arrow keys to drive and steer, Space for the handbrake, R to recover, and C to cycle the camera. Touch controls are available on mobile.
