@@ -295,95 +295,18 @@ jobs:
           patch --batch --forward -p1 < /tmp/launch-traffic.patch
           python3 - <<'PY'
           from pathlib import Path
-          import re
-
-          def once(source, old, new, label):
-              count = source.count(old)
-              if count != 1:
-                  raise SystemExit(f"{label}: expected one match, found {count}")
-              return source.replace(old, new, 1)
-
-          main_path = Path('apex-gp/src/main.js')
-          main = main_path.read_text()
-          main = once(main,
-              'calculateERSFlow, tyreGripFactor, calculateTyreWearRate }',
-              'calculateERSFlow, tyreGripFactor, calculateTyreWearRate, collisionSpeedAfterContact }',
-              'collision helper import')
-          main = once(main,
-              "a.bot.speed=Math.max(0,a.bot.speed*.88-1.2);",
-              "a.bot.speed=collisionSpeedAfterContact(a.bot.speed);",
-              'bot A contact speed')
-          main = once(main,
-              "b.bot.speed=Math.max(0,b.bot.speed*.88-1.2);",
-              "b.bot.speed=collisionSpeedAfterContact(b.bot.speed);",
-              'bot B contact speed')
-          main = once(main,
-              "    body.bot.speed = Math.max(0, body.bot.speed * .88);",
-              "    // No speed loss here: this pose correction runs for every bot, not just contacts.",
-              'remove per-frame AI speed decay')
-          main_path.write_text(main)
-
-          math_path = Path('apex-gp/src/race-math.mjs')
-          math = math_path.read_text()
-          math += "\n// Apply a modest speed loss only when a collision is actually resolved.\nexport function collisionSpeedAfterContact(speed) {\n  const safeSpeed = Math.max(0, Number.isFinite(speed) ? speed : 0);\n  return Math.max(0, safeSpeed * .94 - .35);\n}\n"
-          math_path.write_text(math)
-
-          presence_path = Path('apex-gp/src/global-presence.js')
-          presence = presence_path.read_text()
-          presence = once(presence, '    this.leaderboard = new Map();',
-              '    this.leaderboard = new Map();\n    this.pendingLap = null;', 'pending lap queue')
-          presence = once(presence,
-              "      conn.send({ type: 'hello', profile: this.profile, ownerProof: await this.createOwnerProof(this.selfId) });\n      this.emit('status', 'CONNECTED');",
-              "      conn.send({ type: 'hello', profile: this.profile, ownerProof: await this.createOwnerProof(this.selfId) });\n      this.emit('status', 'CONNECTED');\n      this.sendPendingLap();",
-              'send queued lap on connect')
-          presence = once(presence,
-              "        const ownBest = this.leaderboard.get(this.profile.driverId);\n        if (ownBest && this.hubConnection?.open) this.hubConnection.send({ type: 'lap-submit', seconds: ownBest.seconds });",
-              "        const ownBest = this.leaderboard.get(this.profile.driverId);\n        if (ownBest && !this.pendingLap) this.pendingLap = ownBest;\n        this.sendPendingLap();",
-              'sync own best on welcome')
-          presence = once(presence,
-              "    if (!this.hubConnection?.open) {\n      this.connectToHub();\n      return;\n    }",
-              "    if (!this.hubConnection?.open) {\n      this.connectToHub();\n      return;\n    }\n    this.sendPendingLap();",
-              'retry queued lap on heartbeat')
-          pattern = r"    const improved = this\.mergeLeaderboard\(\[record\], false\);\s*if \(this\.isHub\) \{\s*if \(improved\) this\.broadcastLeaderboard\(\);\s*\} else if \(this\.hubConnection\?\.open\) \{\s*this\.hubConnection\.send\(\{ type: 'lap-submit', seconds: record\.seconds \}\);\s*\}\s*return improved;\s*\}\s*\n\s*broadcastLeaderboard\(\) \{"
-          replacement = """    const improved = this.mergeLeaderboard([record], false);
-            if (improved) {
-              this.pendingLap = record;
-              if (this.isHub) {
-                this.pendingLap = null;
-                this.broadcastLeaderboard();
-              } else {
-                this.sendPendingLap();
-              }
-            }
-            return improved;
-          }
-
-          sendPendingLap() {
-            if (this.isHub || !this.pendingLap || !this.hubConnection?.open) return false;
-            try {
-              this.hubConnection.send({ type: 'lap-submit', seconds: this.pendingLap.seconds });
-              this.pendingLap = null;
-              return true;
-            } catch (error) {
-              console.warn('Global leaderboard lap is queued for retry:', error);
-              return false;
-            }
-          }
-
-          broadcastLeaderboard() {"""
-          presence, count = re.subn(pattern, lambda _: replacement, presence, count=1, flags=re.S)
-          if count != 1:
-              raise SystemExit(f"lap submission retry: expected one match, found {count}")
-          presence_path.write_text(presence)
-
-          test_path = Path('apex-gp/tests/race-math.test.mjs')
-          tests = test_path.read_text()
-          tests = once(tests, '  calculateTyreWearRate\n',
-              '  calculateTyreWearRate,\n  collisionSpeedAfterContact\n', 'test import')
-          tests += "\nassert.equal(collisionSpeedAfterContact(50), 46.65, 'AI loses speed on contact only');\nassert.equal(collisionSpeedAfterContact(0), 0, 'collision response cannot create a launch impulse');\n"
-          test_path.write_text(tests)
+          path = Path('apex-gp/src/main.js')
+          source = path.read_text()
+          old = '    body.bot.speed = Math.max(0, body.bot.speed * .88);'
+          if source.count(old) != 1:
+              raise SystemExit('Expected exactly one unconditional AI speed decay line')
+          source = source.replace(old, '    // Position correction only; do not bleed speed when no collision occurred.', 1)
+          if old in source:
+              raise SystemExit('Unconditional AI speed decay is still present')
+          path.write_text(source)
           PY
- apex-gp/src/main.js
+          grep -q "Position correction only" apex-gp/src/main.js
+          grep -q "bot.gridLane" apex-gp/src/main.js
           grep -q "current track frame" apex-gp/src/main.js
           echo "Collision response, safe launch lanes, and local contact resolution applied"
           for file in apex-gp/src/*.js apex-gp/src/*.mjs apex-gp/tests/*.mjs; do node --check "$file"; done
